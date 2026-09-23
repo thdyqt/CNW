@@ -1,0 +1,25 @@
+extends ../layouts/account.pug
+
+block main
+    .form-account
+        h2.inner-title Đăng ký
+        p.inner-desc Tạo một tài khoản để tiếp tục
+        form.inner-form#register-form
+            .inner-group
+                label.inner-label(for="full-name-input") Họ tên
+                input.inner-control(type="text", name="fullName", id="full-name-input", placeholder="Ví dụ: Lê Văn A")
+            .inner-group
+                label.inner-label(for="email-input") Email
+                input.inner-control(type="email", name="email", id="email-input", placeholder="Ví dụ: levana@gmail.com")
+            .inner-group
+                label.inner-label(for="password-input") Mật khẩu
+                input.inner-control(type="password", name="password", id="password-input")
+            .inner-meta
+                .inner-confirm
+                    input.inner-check(type="checkbox", name="termAgreement", id="term-agreement")
+                    label.inner-label(for="term-agreement") Tôi chấp nhận các điều khoản và điều kiện
+            button.inner-button Đăng Ký
+        .inner-more
+            span Bạn đã có tài khoản?
+            a(href=`/${pathAdmin}/account/login`) Đăng nhập
+

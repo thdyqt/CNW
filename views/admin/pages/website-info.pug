@@ -1,0 +1,31 @@
+extends ../layouts/default.pug
+
+block main
+    h1.box-title Thông tin website
+
+    .section-8
+        form#website-form
+            .inner-group
+                label.inner-label(for="name") Tên website
+                input(type="text", id="name", name="name")
+            .inner-group
+                label.inner-label(for="phone") Số điện thoại
+                input(type="number", id="phone", name="phone")
+            .inner-group
+                label.inner-label(for="email") Email
+                input(type="email", id="email", name="email")
+            .inner-group
+                label.inner-label(for="address") Địa chỉ
+                input(type="text", id="address", name="address")
+            .inner-group
+                label.inner-label(for="logo") Logo
+                .inner-input-image
+                    input(type="file", id="logo", name="logo", accept="image/*" filepond-image)
+            .inner-group
+                label.inner-label(for="favicon") Favicon
+                .inner-input-image
+                    input(type="file", id="favicon", name="favicon", accept="image/*" filepond-image)
+            .inner-button.inner-two-col
+                button Tạo mới
+        .inner-back
+            a(href=`/${pathAdmin}/setting/list`) Quay lại danh sách

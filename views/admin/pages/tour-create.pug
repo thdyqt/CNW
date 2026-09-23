@@ -1,0 +1,112 @@
+extends ../layouts/default.pug
+
+block main
+    h1.box-title Tạo tour
+
+    .section-8
+        form#tour-create-form
+            .inner-group
+                label.inner-label(for="name") Tên tour
+                input(type="text", id="name", name="name")
+            .inner-group
+                label.inner-label(for="category") Danh mục
+                select(id="category", name="category")
+                    option(value="") -- Chọn danh mục --
+                    option(value="") Danh mục 1
+                    option(value="") Danh mục 2  
+            .inner-group
+                label.inner-label(for="position") Vị trí
+                input(type="number", id="position", name="position")
+            .inner-group
+                label.inner-label(for="status") Trạng thái
+                select(id="status",name="status")
+                    option(value="") Hoạt động
+                    option(value="") Dừng hoạt động
+            .inner-group.inner-two-col
+                label.inner-label(for="avatar") Ảnh đại diện
+                .inner-input-image
+                    input(type="file", id="avatar", name="avatar", accept="image/*" filepond-image)
+            .inner-group
+                label.inner-label Giá cũ
+                .inner-input-list
+                    .inner-input-item
+                        label(for="oldAdultPrice") Người lớn
+                        input(type="number", id="oldAdultPrice", name="oldAdultPrice") 
+                    .inner-input-item
+                        label(for="oldKidPrice") Trẻ em
+                        input(type="number", id="oldKidPrice", name="oldKidPrice") 
+                    .inner-input-item
+                        label(for="oldBabyPrice") Em bé
+                        input(type="number", id="oldBabyPrice", name="oldBabyPrice")
+            .inner-group
+                label.inner-label Giá mới
+                .inner-input-list
+                    .inner-input-item
+                        label(for="newAdultPrice") Người lớn
+                        input(type="number", id="newAdultPrice", name="newAdultPrice") 
+                    .inner-input-item
+                        label(for="newKidPrice") Trẻ em
+                        input(type="number", id="newKidPrice", name="newKidPrice") 
+                    .inner-input-item
+                        label(for="newBabyPrice") Em bé
+                        input(type="number", id="newBabyPrice", name="newBabyPrice")  
+            .inner-group
+                label.inner-label Còn lại
+                .inner-input-list
+                    .inner-input-item
+                        label(for="stockAdult") Người lớn
+                        input(type="number", id="stockAdult", name="stockAdult") 
+                    .inner-input-item
+                        label(for="stockKid") Trẻ em
+                        input(type="number", id="stockKid", name="stockKid") 
+                    .inner-input-item
+                        label(for="stockBaby") Em bé
+                        input(type="number", id="stockBaby", name="stockBaby") 
+            .inner-group
+                label.inner-label Những địa điểm có tour
+                    .inner-checkbox-list
+                        .inner-checkbox-item
+                            input(type="checkbox", id="Hà Nội", name="locations", value="Hà Nội")
+                            label(for="Hà Nội") Hà Nội
+                        .inner-checkbox-item
+                            input(type="checkbox", id="Đà Nẵng", name="locations", value="Đà Nẵng")
+                            label(for="Đà Nẵng") Đà Nẵng
+                        .inner-checkbox-item
+                            input(type="checkbox", id="Nha Trang", name="locations", value="Nha Trang")
+                            label(for="Nha Trang") Nha Trang
+                        .inner-checkbox-item
+                            input(type="checkbox", id="Hồ Chí Minh", name="locations", value="Hồ Chí Minh")
+                            label(for="Hồ Chí Minh") Hồ Chí Minh
+            .inner-group
+                label.inner-label(for="time") Thời gian
+                input(type="text", id="time", name="time")
+            .inner-group
+                label.inner-label(for="vehicle") Phương tiện
+                input(type="text", id="vehicle", name="vehicle")
+            .inner-group.inner-two-col
+                label.inner-label(for="date") Ngày khởi hành
+                input(type="date", id="date", name="date")
+            .inner-group.inner-two-col
+                label.inner-label(for="info") Thông tin tour
+                textarea(id="info", name="info" textarea-mce)
+            .inner-group.inner-two-col
+                label.inner-label(for="date") Lịch trình tour
+                    .inner-schedule
+                        .inner-schedule-list
+                            .inner-schedule-item
+                                .inner-schedule-head
+                                    span.inner-schedule-button.inner-move
+                                        i.fa-solid.fa-arrows-up-down-left-right
+                                    input(type="text")
+                                    span.inner-schedule-button.inner-remove
+                                        i.fa-regular.fa-trash-can
+                                    span.inner-schedule-button.inner-more
+                                        i.fa-solid.fa-angle-down
+                                .inner-schedule-body
+                                    textarea(textarea-mce) 
+                        .inner-schedule-add + Thêm lịch trình
+
+            .inner-button.inner-two-col
+                button Tạo mới
+        .inner-back
+            a(href=`/${pathAdmin}/tour/list`) Quay lại danh sách

@@ -1,0 +1,173 @@
+extends ../layouts/default.pug
+include ../mixins/box-breadcrumb.pug
+include ../mixins/product-item.pug
+
+block main
+    -
+        var breadcrumb = {
+            image: "/assets/images/Breadcrumb.jpg",
+            title: "Tour Nước Ngoài",
+            list: [
+                {
+                    link: "/",
+                    title: "Trang Chủ"
+                },
+                {
+                    link: "/tours",
+                    title: "Tour Nước Ngoài"
+                }
+            ]
+        }
+    
+    +box-breadcrumb(breadcrumb)
+    
+    -
+        var productListSection9 = [
+            {
+                avatar: "/assets/images/Background-2.jpg",
+                slug: "#",
+                discount: 30,
+                name: "Hà Nội – Lào Cai – SaPa 4N3Đ",
+                priceOld: 13650000,
+                priceNew: 2590000,
+                code: "123456789",
+                departureDate: "22/07/2026",
+                time: "10 Ngày 9 Đêm",
+                ratingStars: 5,
+                ratingTotal: 5,
+                stock: 10
+            },
+            {
+                avatar: "/assets/images/Background-3.jpg",
+                slug: "#",
+                discount: 30,
+                name: "Tour 2024 Phú Quốc – Thiên Đường Đảo Ngọc (3N2D)",
+                priceOld: 13650000,
+                priceNew: 2590000,
+                code: "123456789",
+                departureDate: "22/07/2026",
+                time: "5 Ngày 4 Đêm",
+                ratingStars: 3,
+                ratingTotal: 12,
+                stock: 10
+            },
+            {
+                avatar: "/assets/images/Background-4.jpg",
+                slug: "#",
+                discount: 30,
+                name: "Combo Đà Nẵng 2024: ĐÀ NẴNG – HỘI AN – BÀ NÀ HILL",
+                priceOld: 13650000,
+                priceNew: 2590000,
+                code: "123456789",
+                departureDate: "22/07/2026",
+                time: "10 Ngày 9 Đêm",
+                ratingStars: 0,
+                ratingTotal: 0,
+                stock: 20
+            }
+        ];
+
+    .section-9
+        .container
+            .inner-wrap
+                .inner-left
+                    .box-filter
+                        .inner-head
+                            .inner-title Bộ Lọc
+                            i.fa-solid.fa-filter
+                        .inner-body
+                            .inner-group
+                                label.inner-label(for="diem-di") Điểm đi
+                                select#diem-di(name="diem-di")
+                                    option(value="default") -- Chọn điểm đi --
+                                    option(value="Ha Noi") Hà Nội
+                                    option(value="Da Nang") Đà Nẵng
+                                    option(value="Nha Trang") Nha Trang
+                            .inner-group
+                                label.inner-label(for="diem-den") Điểm đến
+                                select#diem-den(name="diem-den")
+                                    option(value="default") -- Chọn điểm đi --
+                                    option(value="Ha Noi") Hà Nội
+                                    option(value="Da Nang") Đà Nẵng
+                                    option(value="Nha Trang") Nha Trang
+                            .inner-group
+                                label.inner-label(for="ngay-khoi-hanh") Ngày khởi hành
+                                input#ngay-khoi-hanh(
+                                    name="" 
+                                    type="date"
+                                    )
+                            .inner-group
+                                label.inner-label(for="so-luong") Số Lượng Hành Khách
+                                .inner-input-list
+                                    .inner-input-item
+                                        span Người lớn:
+                                        input#so-luong(
+                                            value="0" 
+                                            name="nguoi-lon" 
+                                            type="number"
+                                            )
+                                    .inner-input-item
+                                        span Trẻ em:
+                                        input(
+                                            value="0" 
+                                            name="tre-em" 
+                                            type="number"
+                                            )
+                                    .inner-input-item
+                                        span Em bé:
+                                        input(
+                                            value="0" 
+                                            name="em-be" 
+                                            type="number"
+                                            )
+                            .inner-group
+                                label.inner-label(for="muc-gia") Điểm đến
+                                select#muc-gia(name="muc-gia")
+                                    option(value="default") -- Chọn khoảng giá --
+                                    option(value="under1") Dưới 1 triệu
+                                    option(value="1to3") 1 triệu đến 3 triệu
+                                    option(value="3to6") 3 triệu đến 6 triệu
+                                    option(value="6to10") 6 triệu đến 10 triệu
+                                    option(value="above10") Trên 10 triệu
+                            .inner-group
+                                button.inner-button Áp Dụng
+                    .inner-overlay
+                .inner-right
+                    .inner-info
+                        h2.inner-title Tour Nước Ngoài
+                        .inner-desc
+                            | Du lịch Châu Á: là châu lục lớn và đông dân nhất thế giới. Châu Á cũng có nhiều danh lam thắng cảnh đẹp tại một số quốc gia như Hàn Quốc, Nhật Bản, Trung Quốc, Việt Nam,... và VK Travel là nhà tổ chức du lịch chuyên nghiệp hàng đầu Châu Á, đã 5 lần liên tiếp nhận giải TTG Travel Awards. Hãy cùng 28.Travel du lịch Châu Á để tận hưởng những dịch vụ tốt nhất.
+                    .inner-info-2
+                        .inner-sort
+                            .inner-label Sắp xếp :
+                            .inner-list
+                                button
+                                    | Giá tăng dần
+                                    i.fa-solid.fa-square-caret-up
+                                button
+                                    | Giá giảm dần
+                                    i.fa-solid.fa-square-caret-down
+                                button.active
+                                    | Khuyến Mãi Hot
+                                    i.fa-solid.fa-tag
+                                button
+                                    | Xem Nhiều
+                                    i.fa-solid.fa-eye
+                        .inner-count-record
+                            | Tất cả:
+                            b 101 Tour
+                        button.inner-filter-mobile
+                            span.inner-title Bộ Lọc
+                            i.fa-solid.fa-filter
+                    .inner-list-tour
+                        each item in productListSection9
+                            +product-item(item)
+                    .box-pagination
+                        button
+                            i.fa-solid.fa-angles-left
+                        button.active 1
+                        button 2
+                        button 3
+                        button 4
+                        button
+                            i.fa-solid.fa-angles-right

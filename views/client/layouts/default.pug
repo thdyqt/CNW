@@ -1,0 +1,48 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(
+            content="width=device-width, initial-scale=1.0" 
+            name="viewport"
+        )
+        title #{pageTitle}
+        link(
+            href="/assets/css/style.css" 
+            rel="stylesheet"
+        )
+        link(
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" 
+            rel="stylesheet"
+        )
+        link(
+            href="https://unpkg.com/aos@2.3.1/dist/aos.css" 
+            rel="stylesheet"
+        )
+        link(
+            href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css" 
+            rel="stylesheet"
+        )
+        link(
+            referrerpolicy="no-referrer" 
+            crossorigin="anonymous" 
+            integrity="sha512-eLs5UFuWC/5nAsCUuBbx9W8ry51hsWDqpnhWUjE4aGAzgdO3iPB+KiaaTqH3IKT2OFAO66hOrnR6O2YlJvDdjw==" 
+            href="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.13.0/viewer.min.css" 
+            rel="stylesheet"
+        )
+    body
+        include ../partials/header.pug
+        block main
+        include ../partials/footer.pug
+        include ../partials/box-contact.pug
+
+        script(src="https://unpkg.com/aos@2.3.1/dist/aos.js")
+        script(src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js")
+        script(
+            referrerpolicy="no-referrer" 
+            crossorigin="anonymous" 
+            integrity="sha512-riFrNxs2bDKqO6KwSJysv07p/tbD+FzD1AOBt3inbAh2SxEY17tl5qObaUgn7Xjyzr1GIcvv6eUsZfxwS7Y8lA==" 
+            src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.13.0/viewer.min.js"
+        )
+        script(src="https://unpkg.com/just-validate@latest/dist/just-validate.production.min.js")
+        script(src="/assets/js/script.js")
