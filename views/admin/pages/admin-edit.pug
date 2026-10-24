@@ -1,0 +1,43 @@
+extends ../layouts/default.pug
+
+block main
+    h1.box-title Chỉnh sửa tài khoản quản trị
+
+    .section-8
+        form#admin-edit-form
+            .inner-group(style="display: none;")
+                input(type="text", id="id", name="id", value=currentAccount.id)
+            .inner-group
+                label.inner-label(for="fullName") Họ tên
+                input(type="text", id="fullName" name="fullName", value=currentAccount.fullName)
+            .inner-group
+                label.inner-label(for="email") Email
+                input(type="email", id="email" name="email", value=currentAccount.email)
+            .inner-group
+                label.inner-label(for="phone") Số điện thoại
+                input(type="number", id="phone" name="phone", value=currentAccount.phone)
+            .inner-group
+                label.inner-label(for="role") Nhóm quyền
+                select(id="role" name="role")
+                    each item in roleList
+                        option(value=item.id selected=(currentAccount.role == item.id) ? true : false) #{item.name}
+            .inner-group
+                label.inner-label(for="position") Chức vụ
+                input(type="text", id="position" name="position", value=currentAccount.position)
+            .inner-group
+                label.inner-label(for="status") Trạng thái
+                select(id="status" name="status")
+                    option(value="initial" selected=(currentAccount.status == "initial") ? true : false) Khởi tạo
+                    option(value="active" selected=(currentAccount.status == "active") ? true : false) Hoạt động
+                    option(value="inactive" selected=(currentAccount.status == "inactive") ? true : false) Tạm dừng
+            .inner-group.inner-two-col
+                label.inner-label(for="password") Mật khẩu
+                input(type="text", id="password" name="password")
+            .inner-group.inner-two-col
+                label.inner-label(for="avatar") Ảnh đại diện
+                .inner-input-image(image-default=currentAccount.avatar)
+                    input(type="file", id="avatar", name="avatar", accept="image/*" filepond-image)
+            .inner-button.inner-two-col
+                button Cập nhật
+        .inner-back
+            a(href=`/${pathAdmin}/setting/account-admin/list`) Quay lại danh sách

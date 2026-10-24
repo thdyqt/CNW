@@ -1,0 +1,38 @@
+extends ../layouts/default.pug
+include ../mixins/options.pug
+
+block main
+    if(account.permissions.includes("category-edit"))
+        h1.box-title Chỉnh sửa danh mục
+
+        .section-8
+            form#category-edit-form
+                .inner-group(style="display: none;")
+                    input(type="text", id="id", name="id", value=currentCategory.id)
+                .inner-group
+                    label.inner-label(for="name") Tên danh mục
+                    input(type="text", id="name", name="name", value=currentCategory.name)
+                .inner-group
+                    label.inner-label(for="parent") Danh mục cha
+                    select(id="parent", name="parent")
+                        option(value="") -- Chọn danh mục --
+                        +options(categoryList, 0, currentCategory.parent)
+                .inner-group
+                    label.inner-label(for="position") Vị trí
+                    input(type="text", id="position", name="position", value=currentCategory.position)
+                .inner-group
+                    label.inner-label(for="status") Trạng thái
+                    select(id="status", name="status")
+                        option(value="active" selected=(currentCategory.status == "active") ? true : false) Hoạt động
+                        option(value="inactive" selected=(currentCategory.status == "inactive") ? true : false) Tạm dừng
+                .inner-group.inner-two-col
+                    label.inner-label(for="avatar") Ảnh đại diện
+                    .inner-input-image(image-default=currentCategory.avatar)
+                        input(type="file", id="avatar", name="avatar", accept="image/*" filepond-image)
+                .inner-group.inner-two-col
+                    label.inner-label(for="description") Mô tả
+                    textarea(id="description", name="description" textarea-mce) #{currentCategory.description}
+                .inner-button.inner-two-col
+                    button Cập nhật
+            .inner-back
+                a(href=`/${pathAdmin}/category/list`) Quay lại danh sách

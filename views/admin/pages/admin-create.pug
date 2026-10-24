@@ -6,8 +6,8 @@ block main
     .section-8
         form#admin-create-form
             .inner-group
-                label.inner-label(for="name") Họ tên
-                input(type="text", id="name" name="name")
+                label.inner-label(for="fullName") Họ tên
+                input(type="text", id="fullName" name="fullName")
             .inner-group
                 label.inner-label(for="email") Email
                 input(type="email", id="email" name="email")
@@ -17,17 +17,17 @@ block main
             .inner-group
                 label.inner-label(for="role") Nhóm quyền
                 select(id="role" name="role")
-                    option(value="") Quản trị viên
-                    option(value="") Quản lý tour
-                    option(value="") Quản lý đơn hàng  
+                    each item in roleList
+                        option(value=item.id) #{item.name}
             .inner-group
                 label.inner-label(for="position") Chức vụ
                 input(type="text", id="position" name="position")
             .inner-group
                 label.inner-label(for="status") Trạng thái
                 select(id="status" name="status")
-                    option(value="") Hoạt động
-                    option(value="") Tạm dừng
+                    option(value="initial") Khởi tạo
+                    option(value="active") Hoạt động
+                    option(value="inactive") Tạm dừng
             .inner-group.inner-two-col
                 label.inner-label(for="password") Mật khẩu
                 input(type="text", id="password" name="password")

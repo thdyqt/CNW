@@ -2,70 +2,8 @@ extends ../layouts/default.pug
 include ../mixins/box-breadcrumb.pug
 include ../mixins/product-item.pug
 
-block main
-    -
-        var breadcrumb = {
-            image: "/assets/images/Breadcrumb.jpg",
-            title: "Tour Nước Ngoài",
-            list: [
-                {
-                    link: "/",
-                    title: "Trang Chủ"
-                },
-                {
-                    link: "/tours",
-                    title: "Tour Nước Ngoài"
-                }
-            ]
-        }
-    
+block main    
     +box-breadcrumb(breadcrumb)
-    
-    -
-        var productListSection9 = [
-            {
-                avatar: "/assets/images/Background-2.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Hà Nội – Lào Cai – SaPa 4N3Đ",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 5,
-                ratingTotal: 5,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-3.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Tour 2024 Phú Quốc – Thiên Đường Đảo Ngọc (3N2D)",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "5 Ngày 4 Đêm",
-                ratingStars: 3,
-                ratingTotal: 12,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-4.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Combo Đà Nẵng 2024: ĐÀ NẴNG – HỘI AN – BÀ NÀ HILL",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 0,
-                ratingTotal: 0,
-                stock: 20
-            }
-        ];
 
     .section-9
         .container
@@ -77,69 +15,67 @@ block main
                             i.fa-solid.fa-filter
                         .inner-body
                             .inner-group
-                                label.inner-label(for="diem-di") Điểm đi
-                                select#diem-di(name="diem-di")
-                                    option(value="default") -- Chọn điểm đi --
-                                    option(value="Ha Noi") Hà Nội
-                                    option(value="Da Nang") Đà Nẵng
-                                    option(value="Nha Trang") Nha Trang
+                                label.inner-label(for="locationFrom") Điểm đi
+                                select#locationFrom(name="locationFrom")
+                                    option(value="") -- Chọn điểm đi --
+                                    each item in cityList
+                                        option(value=item.id) #{item.name}
                             .inner-group
-                                label.inner-label(for="diem-den") Điểm đến
-                                select#diem-den(name="diem-den")
-                                    option(value="default") -- Chọn điểm đi --
-                                    option(value="Ha Noi") Hà Nội
-                                    option(value="Da Nang") Đà Nẵng
-                                    option(value="Nha Trang") Nha Trang
+                                label.inner-label(for="locationTo") Điểm đến
+                                select#locationTo(name="locationTo")
+                                    option(value="") -- Chọn điểm đến --
+                                    each item in cityList
+                                        option(value=item.name) #{item.name}
                             .inner-group
-                                label.inner-label(for="ngay-khoi-hanh") Ngày khởi hành
-                                input#ngay-khoi-hanh(
-                                    name="" 
+                                label.inner-label(for="departureDate") Ngày khởi hành
+                                input#departureDate(
+                                    name="departureDate" 
                                     type="date"
                                     )
                             .inner-group
-                                label.inner-label(for="so-luong") Số Lượng Hành Khách
+                                label.inner-label(for="stock") Số Lượng Hành Khách
                                 .inner-input-list
                                     .inner-input-item
                                         span Người lớn:
-                                        input#so-luong(
+                                        input#stock(
                                             value="0" 
-                                            name="nguoi-lon" 
+                                            name="stockAdult" 
                                             type="number"
                                             )
                                     .inner-input-item
                                         span Trẻ em:
                                         input(
                                             value="0" 
-                                            name="tre-em" 
+                                            name="stockChildren" 
                                             type="number"
                                             )
                                     .inner-input-item
                                         span Em bé:
                                         input(
                                             value="0" 
-                                            name="em-be" 
+                                            name="stockBaby" 
                                             type="number"
                                             )
                             .inner-group
-                                label.inner-label(for="muc-gia") Điểm đến
-                                select#muc-gia(name="muc-gia")
-                                    option(value="default") -- Chọn khoảng giá --
-                                    option(value="under1") Dưới 1 triệu
-                                    option(value="1to3") 1 triệu đến 3 triệu
-                                    option(value="3to6") 3 triệu đến 6 triệu
-                                    option(value="6to10") 6 triệu đến 10 triệu
-                                    option(value="above10") Trên 10 triệu
+                                label.inner-label(for="price") Mức giá
+                                select#price(name="price")
+                                    option(value="") -- Chọn khoảng giá --
+                                    option(value="0-999999") Dưới 1 triệu
+                                    option(value="1000000-3000000") 1 triệu đến 3 triệu
+                                    option(value="3000000-6000000") 3 triệu đến 6 triệu
+                                    option(value="6000000-10000000") 6 triệu đến 10 triệu
+                                    option(value="10000000-10000000000") Trên 10 triệu
                             .inner-group
                                 button.inner-button Áp Dụng
                     .inner-overlay
                 .inner-right
                     .inner-info
-                        h2.inner-title Tour Nước Ngoài
+                        h2.inner-title #{category.name}
                         .inner-desc
-                            | Du lịch Châu Á: là châu lục lớn và đông dân nhất thế giới. Châu Á cũng có nhiều danh lam thắng cảnh đẹp tại một số quốc gia như Hàn Quốc, Nhật Bản, Trung Quốc, Việt Nam,... và VK Travel là nhà tổ chức du lịch chuyên nghiệp hàng đầu Châu Á, đã 5 lần liên tiếp nhận giải TTG Travel Awards. Hãy cùng 28.Travel du lịch Châu Á để tận hưởng những dịch vụ tốt nhất.
+                            | !{category.description}
                     .inner-info-2
                         .inner-sort
-                            .inner-label Sắp xếp :
+                            .inner-label Sắp xếp:
                             .inner-list
                                 button
                                     | Giá tăng dần
@@ -155,12 +91,13 @@ block main
                                     i.fa-solid.fa-eye
                         .inner-count-record
                             | Tất cả:
-                            b 101 Tour
+                            b 
+                            | #{tourListSection9.length} Tour
                         button.inner-filter-mobile
                             span.inner-title Bộ Lọc
                             i.fa-solid.fa-filter
                     .inner-list-tour
-                        each item in productListSection9
+                        each item in tourListSection9
                             +product-item(item)
                     .box-pagination
                         button

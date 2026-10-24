@@ -5,6 +5,9 @@ const database = require('./config/database')
 const variableConfig = require('./config/variable')
 const adminRoutes = require('./routes/admin/index.route')
 const clientRoutes = require('./routes/client/index.route')
+const cookieParser = require('cookie-parser')
+const session = require('express-session')
+const flash = require('express-flash')
 
 const app = express();
 const port = 3000;
@@ -21,6 +24,24 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Tạo biến toàn cục trong file Pug
 app.locals.pathAdmin = variableConfig.pathAdmin;
+
+// Tạo biến toàn cục trong file JS (Backend)
+global.pathAdmin = variableConfig.pathAdmin;
+
+// Cho phép gửi data lên dạng Json
+app.use(express.json())
+
+// Sử dụng cookieParser
+app.use(cookieParser('GFFDSGDFGDFGERFREVVEGTHRTH'));
+
+// Hiển thị thông báo sau khi load lại trang
+app.use(session({ 
+    secret: 'GFFDSGDFGDFGERFREVVEGTHRTH', 
+    resave: false,  
+    saveUninitialized: false,                       
+    cookie: { maxAge: 60000 }
+}));
+app.use(flash());
 
 // Thiết lập đường dẫn
 app.use(`/${variableConfig.pathAdmin}`, adminRoutes)

@@ -24,6 +24,30 @@ if (loginForm) {
             const email = event.target.email.value;
             const password = event.target.password.value;
             const rememberPassword = event.target.rememberPassword.checked;
+
+            const dataFinal = {
+                email: email,
+                password: password,
+                rememberPassword: rememberPassword
+            };
+
+            fetch(`/${pathAdmin}/account/login`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dataFinal)
+            })
+                .then (res => res.json())
+                .then (data => {
+                    if(data.code == "error") {
+                        alert(data.message);
+                    }
+                    else if (data.code == "success") {
+                        window.location.href = `/${pathAdmin}/dashboard`
+                    }
+                })
+            
         })
 }
 
@@ -79,7 +103,32 @@ if (registerForm) {
             const fullName = event.target.fullName.value;
             const email = event.target.email.value;
             const password = event.target.password.value;
-            const termAgreement = event.target.termAgreement.checked;
+            const agree = event.target.termAgreement.checked;
+
+            if (agree) {
+                const dataFinal = {
+                    fullName: fullName,
+                    email: email,
+                    password: password
+                };
+
+                fetch(`/${pathAdmin}/account/register`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dataFinal)
+                })
+                    .then (res => res.json())
+                    .then (data => {
+                        if(data.code == "error") {
+                            alert(data.message);
+                        }
+                        else if (data.code == "success") {
+                            window.location.href = `/${pathAdmin}/account/register-initial`
+                        }
+                    })
+            }
         })
 }
 
@@ -101,6 +150,27 @@ if (forgotPasswordForm) {
         ])
         .onSuccess(event => {
             const email = event.target.email.value;
+
+            const dataFinal = {
+                email: email
+            }
+
+            fetch(`/${pathAdmin}/account/forgot-password`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dataFinal)
+                })
+                    .then (res => res.json())
+                    .then (data => {
+                        if(data.code == "error") {
+                            alert(data.message);
+                        }
+                        else if (data.code == "success") {
+                            window.location.href = `/${pathAdmin}/account/otp-password?email=${email}`
+                        }
+                    })
         })
 }
 
@@ -122,6 +192,30 @@ if (otpForm) {
         ])
         .onSuccess(event => {
             const otp = event.target.otp.value;
+            const urlParams = new URLSearchParams(window.location.search);
+            const email = urlParams.get("email");
+            
+            const dataFinal = {
+                email: email,
+                otp: otp
+            }
+
+            fetch(`/${pathAdmin}/account/otp-password`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dataFinal)
+                })
+                    .then (res => res.json())
+                    .then (data => {
+                        if(data.code == "error") {
+                            alert(data.message);
+                        }
+                        else if (data.code == "success") {
+                            window.location.href = `/${pathAdmin}/account/reset-password`
+                        }
+                    })
         })
 }
 
@@ -153,5 +247,39 @@ if (changePasswordForm) {
         ])
         .onSuccess(event => {
             const newPassword = event.target.newPassword.value;
+
+            const dataFinal = {
+                password: newPassword
+            }
+
+            fetch(`/${pathAdmin}/account/reset-password`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dataFinal)
+                })
+                    .then (res => res.json())
+                    .then (data => {
+                        if(data.code == "error") {
+                            alert(data.message);
+                        }
+                        else if (data.code == "success") {
+                            window.location.href = `/${pathAdmin}/dashboard`
+                        }
+                    })
         })
+}
+
+// Search
+const inputSearch = document.querySelector("[search]");
+if (inputSearch) {
+    const url = new URL(window.location.href);
+
+    // Lắng nghe bấm enter thì tìm kiếm
+    inputSearch.addEventListener("keyup", event => {
+        if(event.code == "Enter") {
+            const value = inputSearch.value;
+        }
+    })
 }

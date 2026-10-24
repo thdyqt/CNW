@@ -23,6 +23,7 @@ block main
                     data-aos-duration="800" 
                     data-aos="fade-up" 
                     action=""
+                    form-search
                     )
                     .inner-box.inner-location
                         .inner-input-group
@@ -33,6 +34,7 @@ block main
                             input.inner-input(
                                 placeholder="Bạn muốn đi đâu" 
                                 type="text"
+                                name="locationTo"
                                 )
                             i.fa-solid.fa-angle-down.inner-down
                         .inner-suggest
@@ -129,19 +131,19 @@ block main
                                 .inner-label Người lớn
                                 .inner-count
                                     span.inner-down -
-                                    span.inner-number 0
+                                    span.inner-number(stock-adult) 0
                                     span.inner-up +
                             .inner-item
                                 .inner-label Trẻ em
                                 .inner-count
                                     span.inner-down -
-                                    span.inner-number 0
+                                    span.inner-number(stock-children) 0
                                     span.inner-up +
                             .inner-item
                                 .inner-label Em bé
                                 .inner-count
                                     span.inner-down -
-                                    span.inner-number 0
+                                    span.inner-number(stock-baby) 0
                                     span.inner-up +
                     .inner-box.inner-calendar
                         .inner-input-group
@@ -151,58 +153,13 @@ block main
                                 )
                             input.inner-input(
                                 placeholder="Lịch Khởi Hành" 
-                                type="text"
+                                type="date"
+                                name="departureDate"
                                 )
-                            i.fa-solid.fa-angle-down.inner-down
                     button.inner-button
                         i.fa-solid.fa-magnifying-glass.inner-glass
                         | Tìm kiếm
 
-    -
-        var productListSection2 = [
-            {
-                avatar: "/assets/images/Background-2.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Hà Nội – Lào Cai – SaPa 4N3Đ",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 5,
-                ratingTotal: 5,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-3.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Tour 2024 Phú Quốc – Thiên Đường Đảo Ngọc (3N2D)",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "5 Ngày 4 Đêm",
-                ratingStars: 3,
-                ratingTotal: 12,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-4.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Combo Đà Nẵng 2024: ĐÀ NẴNG – HỘI AN – BÀ NÀ HILL",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 0,
-                ratingTotal: 0,
-                stock: 20
-            }
-        ];
     .section-2(
         data-aos-duration="800" 
         data-aos="fade-up"
@@ -236,7 +193,7 @@ block main
                 .inner-list
                     .swiper.swiper-section-2
                         .swiper-wrapper
-                            each item in productListSection2
+                            each item in tourListSection2
                                 .swiper-slide
                                     +product-item(item)
                         
@@ -295,52 +252,6 @@ block main
                                     src="/assets/images/Background-7.jpg"
                                     )
                 .swiper-pagination
-    
-    -
-        var productListSection4 = [
-            {
-                avatar: "/assets/images/Background-2.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Hà Nội – Lào Cai – SaPa 4N3Đ",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 5,
-                ratingTotal: 5,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-3.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Tour 2024 Phú Quốc – Thiên Đường Đảo Ngọc (3N2D)",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "5 Ngày 4 Đêm",
-                ratingStars: 3,
-                ratingTotal: 12,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-4.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Combo Đà Nẵng 2024: ĐÀ NẴNG – HỘI AN – BÀ NÀ HILL",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 0,
-                ratingTotal: 0,
-                stock: 20
-            }
-        ];
 
     .section-4
         .container
@@ -353,7 +264,7 @@ block main
                 data-aos-duration="800" 
                 data-aos="fade-up"
                 )
-                each item in productListSection4
+                each item in tourListSection4
                     +product-item(item)
             .inner-button(
                 data-aos-delay="150" 
@@ -371,52 +282,6 @@ block main
                     alt="Banner" 
                     src="/assets/images/Banner.jpg"
                     )
-
-    -
-        var productListSection6 = [
-            {
-                avatar: "/assets/images/Background-2.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Hà Nội – Lào Cai – SaPa 4N3Đ",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 5,
-                ratingTotal: 5,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-3.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Tour 2024 Phú Quốc – Thiên Đường Đảo Ngọc (3N2D)",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "5 Ngày 4 Đêm",
-                ratingStars: 3,
-                ratingTotal: 12,
-                stock: 10
-            },
-            {
-                avatar: "/assets/images/Background-4.jpg",
-                slug: "#",
-                discount: 30,
-                name: "Combo Đà Nẵng 2024: ĐÀ NẴNG – HỘI AN – BÀ NÀ HILL",
-                priceOld: 13650000,
-                priceNew: 2590000,
-                code: "123456789",
-                departureDate: "22/07/2026",
-                time: "10 Ngày 9 Đêm",
-                ratingStars: 0,
-                ratingTotal: 0,
-                stock: 20
-            }
-        ];
     
     .section-6
         .container
@@ -429,7 +294,7 @@ block main
                 data-aos-duration="800" 
                 data-aos="fade-up"
                 )
-                each item in productListSection6
+                each item in tourListSection6
                     +product-item(item)
             .inner-button(
                 data-aos-delay="150" 

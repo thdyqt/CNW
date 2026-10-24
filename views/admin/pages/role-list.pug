@@ -6,18 +6,16 @@ block main
     //- Section-5
     .section-5
         .inner-wrap
-            .inner-check-status
+            .inner-check-status(change-multi data-api=`/${pathAdmin}/setting/role/change-multi`)
                 .inner-item
                     select
                         option(value="") -- Hành động --
-                        option(value="") Hoạt động
-                        option(value="") Dừng hoạt động
-                        option(value="") Xóa
+                        option(value="delete") Xóa
                 .inner-item
                     button Áp dụng
             .inner-search
                 i.fa-solid.fa-magnifying-glass
-                input(type="text", placeholder="Tìm kiếm")
+                input(type="text", placeholder="Tìm kiếm" search)
             .inner-button-create
                 a(href=`/${pathAdmin}/setting/role/create`)  + Tạo mới
 
@@ -28,56 +26,31 @@ block main
                 thead
                     tr
                         th.inner-center
-                            input.inner-check(type="checkbox")
+                            input.inner-check(type="checkbox" check-all)
                         th Tên nhóm quyền
                         th Mô tả ngắn
                         th Hành động
-                tbody
-                    tr
-                        td.inner-center
-                            input.inner-check(type="checkbox")
-                        td Quản trị viên
-                        td Có đầy đủ các quyền
-                        td
-                            .badge.badge-green Hoạt động
-                        td
-                            .inner-buttons
-                                button.inner-edit
-                                    i.fa-regular.fa-pen-to-square
-                                button.inner-delete
-                                    i.fa-regular.fa-trash-can 
-                    tr
-                        td.inner-center
-                            input.inner-check(type="checkbox")
-                        td Quản lý tour
-                        td Có đầy đủ quyền liên quan đến tour
-                        td
-                            .badge.badge-green Hoạt động
-                        td
-                            .inner-buttons
-                                button.inner-edit
-                                    i.fa-regular.fa-pen-to-square
-                                button.inner-delete
-                                    i.fa-regular.fa-trash-can 
-                    tr
-                        td.inner-center
-                            input.inner-check(type="checkbox")
-                        td Quản lý đơn hàng
-                        td Có đầy đủ quyền liên quan đến đơn hàng
-                        td
-                            .badge.badge-green Hoạt động
-                        td
-                            .inner-buttons
-                                button.inner-edit
-                                    i.fa-regular.fa-pen-to-square
-                                button.inner-delete
-                                    i.fa-regular.fa-trash-can 
+                tbody 
+                    each item in roleList
+                        tr
+                            td.inner-center
+                                input.inner-check(type="checkbox" check-item=item.id)
+                            td #{item.name}
+                            td #{item.description}
+                            td
+                                .inner-buttons
+                                    a.inner-edit(href=`/${pathAdmin}/setting/role/edit/${item.id}`)
+                                        i.fa-regular.fa-pen-to-square
+                                    button.inner-delete(button-delete data-api=`/${pathAdmin}/setting/role/delete/${item.id}`)
+                                        i.fa-regular.fa-trash-can 
     
     //- Section-7
     .section-7
-        span.inner-label Hiển thị 1 - 9 của 78
-        select.inner-pagination
-            option Trang 1
-            option Trang 2
-            option Trang 3
+        if roleList.length > 0
+            span.inner-label Hiển thị #{pagination.skip + 1} - #{pagination.skip + roleList.length} của #{pagination.totalRecord}
+            select.inner-pagination(pagination)
+                - for (let i = 1; i <= pagination.totalPage; i++)
+                    option(value=i) Trang #{i}
+        else 
+            span.inner-label Không có dữ liệu để hiển thị
             

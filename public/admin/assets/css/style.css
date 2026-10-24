@@ -456,6 +456,7 @@ a {
     width: calc(100% - 240px);
     min-height: calc(100vh - 70px);
     padding: 30px;
+    padding-bottom: 150px;
 }
 
 .main .box-title {
@@ -741,6 +742,7 @@ a {
 
 .section-4 .inner-reset {
     color: #EA0234;
+    cursor: pointer;
 }
 
 .section-4 .inner-reset i {
@@ -892,6 +894,7 @@ a {
     border-spacing: 0; 
 }
 
+
 .table-2 thead th {
     color: var(--black);
     background-color: #FCFDFD;
@@ -979,7 +982,7 @@ a {
     border-radius: 8px;
 }
 
-.table-2 tbody .inner-buttons button {
+.table-2 tbody .inner-buttons button, .table-2 tbody .inner-buttons a {
     font-size: 15px;
     padding: 8.5px 16.5px;
     outline: none;
@@ -989,7 +992,8 @@ a {
     cursor: pointer;
 }
 
-.table-2 tbody .inner-buttons button:last-child {
+.table-2 tbody .inner-buttons button:last-child,
+.table-2 tbody .inner-buttons a:last-child {
     border-right: 0;
 }
 
@@ -1089,7 +1093,8 @@ a {
 }
 
 .section-8 input, .section-8 select, .section-8 textarea {
-    padding: 18px 22px;
+    padding: 0 22px;
+    height: 58px;
     width: 100%;
     outline: none;
     border: 1px solid #D5D5D5;
@@ -1106,7 +1111,12 @@ a {
     overflow: hidden; 
 }
 
-.section-8 .inner-input-image .filepond--credits {
+.section-8 .inner-input-image-multi {
+    width: 300px;
+    min-height: 150px; 
+}
+
+.section-8 .inner-input-image .filepond--credits, .section-8 .inner-input-image-multi .filepond--credits {
     display: none;
 }
 
@@ -1115,29 +1125,34 @@ a {
     height: 100% !important;
 }
 
+.section-8 .inner-input-image-multi .filepond--root {
+    width: 100%;
+    max-height: 600px;
+}
+
 .section-8 .inner-input-image .filepond--drop-label {
     min-height: 100%;
     cursor: pointer;
 }
 
-.section-8 .inner-input-image .filepond--drop-label label {
+.section-8 .inner-input-image .filepond--drop-label label, .section-8 .inner-input-image-multi .filepond--drop-label label {
     font-weight: 500;
     font-size: 50px;
     color: var(--black);
     cursor: pointer;
 }
 
-.section-8 .inner-input-image .filepond--panel-root {
+.section-8 .inner-input-image .filepond--panel-root, .section-8 .inner-input-image-multi .filepond--panel-root {
     border: 1px solid #D5D5D5;
     background-color: #F5F6FA !important;
     border-radius: 4px;
 }
 
-.section-8 .inner-input-image .filepond--file-info {
+.section-8 .inner-input-image .filepond--file-info, .section-8 .inner-input-image-multi .filepond--file-info {
     display: none;
 }
 
-.section-8 .inner-input-image .filepond--action-remove-item {
+.section-8 .inner-input-image .filepond--action-remove-item, .section-8 .inner-input-image-multi .filepond--file-info {
     background: #F93C65;
     width: 22px;
     height: 22px;
@@ -1482,4 +1497,20 @@ a {
         border-radius: 8px;
         font-size: 16px;
     }
+}
+
+/* Alert */
+.alert {
+  position: fixed;
+  top: 80px;
+  right: 20px;
+  z-index: 999;
+  background-color: #ddd;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.alert-success {
+  background-color: #a3e0a3;
 }

@@ -5,24 +5,26 @@ block main
 
     .section-8
         form#profile-edit-form
+            .inner-group(style="display: none;")
+                input(type="text", id="id", name="id", value=currentAccountAdmin.id)
             .inner-group
-                label.inner-label(for="name") Họ tên
-                input(type="text", id="name", name="name")
+                label.inner-label(for="fullName") Họ tên
+                input(type="text", id="fullName", name="fullName", value=currentAccountAdmin.fullName)
             .inner-group
                 label.inner-label(for="email") Email
-                input(type="email", id="email", name="email")
+                input(type="email", id="email", name="email", value=currentAccountAdmin.email)
             .inner-group
                 label.inner-label(for="phone") Số điện thoại
-                input(type="number", id="phone", name="phone")
+                input(type="number", id="phone", name="phone", value=currentAccountAdmin.phone)
             .inner-group
                 label.inner-label(for="position") Chức vụ
-                input(type="text", id="position", name="position" readonly)
+                input(type="text", id="position", name="position" value=currentAccountAdmin.position readonly)
             .inner-group.inner-two-col
                 label.inner-label(for="role") Nhóm quyền
-                input(type="text", id="role", name="role" readonly)
+                input(type="text", id="role", name="role", value=currentAccountAdmin.roleName readonly)
             .inner-group.inner-two-col
                 label.inner-label(for="avatar") Ảnh đại diện
-                .inner-input-image
+                .inner-input-image(image-default=currentAccountAdmin.avatar)
                     input(type="file", id="avatar", name="avatar", accept="image/*" filepond-image)
             .inner-button.inner-two-col
                 button Cập nhật

@@ -8,6 +8,11 @@ html(lang="en")
         )
         title #{pageTitle}
         link(
+            href=settingWebsiteInfo.favicon 
+            rel="icon"
+            type="image/x-icon"
+        )
+        link(
             href="/assets/css/style.css" 
             rel="stylesheet"
         )
@@ -31,6 +36,10 @@ html(lang="en")
             rel="stylesheet"
         )
     body
+        - if (messages.success)
+            div(class="alert alert-success" alert-time="3000")
+                span #{messages.success}
+                
         include ../partials/header.pug
         block main
         include ../partials/footer.pug
