@@ -379,7 +379,13 @@ if (orderForm) {
                         alert(data.message);
                     }
                     else if (data.code == "success") {
-                        window.location.reload();
+                        // Cập nhật lại giỏ hàng
+                        let cart = JSON.parse(localStorage.getItem("cart"));
+                        cart = cart.filter(item => item.checked == false);
+                        localStorage.setItem("cart", JSON.stringify(cart));
+
+                        // Chuyển sang trang đặt hàng thành công
+                        window.location.href = `/order/success?orderCode=${data.orderCode}&phone=${phone}`;
                     }
                 });
 
