@@ -512,13 +512,13 @@ if (tourEditForm) {
         })
 }
 
-// Order Modify
-const orderModifyForm = document.querySelector("#order-modify-form");
-if (orderModifyForm) {
-    const validator = new JustValidate("#order-modify-form");
+// Order Edit
+const orderEditForm = document.querySelector("#order-edit-form");
+if (orderEditForm) {
+    const validator = new JustValidate("#order-edit-form");
 
     validator
-        .addField("#name", [
+        .addField("#fullName", [
             {
                 rule: "required",
                 errorMessage: "Vui lòng nhập họ tên đầy đủ!"
@@ -546,12 +546,39 @@ if (orderModifyForm) {
             },
         ])
         .onSuccess(event => {
-            const name = event.target.name.value;
+            const id = event.target.id.value;
+            const fullName = event.target.fullName.value;
             const phone = event.target.phone.value;
             const note = event.target.note.value;
             const paymentMethod = event.target.paymentMethod.value;
             const paymentStatus = event.target.paymentStatus.value;
             const status = event.target.status.value;
+
+            const dataFinal = {
+                fullName: fullName,
+                phone: phone,
+                note: note,
+                paymentMethod: paymentMethod, 
+                paymentStatus: paymentStatus,
+                status: status
+            }
+
+            fetch(`/${pathAdmin}/order/edit/${id}`, {
+                method: "PATCH",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(dataFinal)
+            })
+                .then (res => res.json())
+                .then (data => {
+                    if(data.code == "error") {
+                        alert(data.message);
+                    }
+                    else if (data.code == "success") {
+                        window.location.reload();
+                    }
+                })
         })
 }
 

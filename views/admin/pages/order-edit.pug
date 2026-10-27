@@ -1,69 +1,64 @@
 extends ../layouts/default.pug
 
 block main
-    h1.box-title Đơn hàng: OD000001
+    h1.box-title Đơn hàng: #{currentOrder.code}
 
     .section-8
-        form#order-modify-form
+        form#order-edit-form
+            .inner-group(style="display: none;")
+                input(type="text", id="id", name="id", value=currentOrder.id)
             .inner-group
-                label.inner-label(for="name") Tên khách hàng
-                input(type="text", id="name", name="name")
+                label.inner-label(for="fullName") Tên khách hàng
+                input(type="text", id="fullName", name="fullName" value=currentOrder.fullName)
             .inner-group
                 label.inner-label(for="phone") Số điện thoại
-                input(type="number", id="phone", name="phone")
+                input(type="number", id="phone", name="phone" value=currentOrder.phone)
             .inner-group.inner-two-col
                 label.inner-label(for="note") Ghi chú
-                textarea(id="note", name="note")
+                textarea(id="note", name="note") #{currentOrder.note}
             .inner-group
-                label.inner-label(for="payment-method") Phương thức thanh toán
-                select(id="payment-method", name="paymentMethod")
-                    option(value="") Ví Momo
-                    option(value="") VNPay
-                    option(value="") ZaloPay
+                label.inner-label(for="paymentMethod") Phương thức thanh toán
+                select(id="paymentMethod", name="paymentMethod")
+                    option(value="money" selected=(currentOrder.paymentMethod == "money" ? true : false)) Tiền mặt
+                    option(value="bank" selected=(currentOrder.paymentMethod == "bank" ? true : false)) Tài khoản ngân hàng
+                    option(value="momo" selected=(currentOrder.paymentMethod == "momo" ? true : false)) Ví MoMo
+                    option(value="vnpay" selected=(currentOrder.paymentMethod == "vnpay" ? true : false)) VNPay
+                    option(value="zalopay" selected=(currentOrder.paymentMethod == "zalopay" ? true : false)) ZaloPay
             .inner-group
-                label.inner-label(for="payment-status") Trạng thái thanh toán
-                select(id="payment-status", name="paymentStatus")
-                    option(value="") Chưa thanh toán
-                    option(value="") Đã thanh toán
+                label.inner-label(for="paymentStatus") Trạng thái thanh toán
+                select(id="paymentStatus", name="paymentStatus")
+                    option(value="unpaid" selected=(currentOrder.paymentStatus == "unpaid" ? true : false)) Chưa thanh toán
+                    option(value="paid" selected=(currentOrder.paymentStatus == "paid" ? true : false)) Đã thanh toán
             .inner-group
-                label.inner-label(for="time") Ngày đặt
-                input(type="text", id="time", name="time" readonly)
+                label.inner-label(for="createdAt") Ngày đặt
+                input(id="createdAt", name="createdAt" value=currentOrder.createdAtFormatted readonly)
             .inner-group
                 label.inner-label(for="status") Trạng thái
                 select(id="status", name="status")
-                    option(value="") Hoạt động
-                    option(value="") Tạm dừng
+                    option(value="initial" selected=(currentOrder.status == "initial" ? true : false)) Khởi tạo
+                    option(value="done" selected=(currentOrder.status == "done" ? true : false)) Hoàn thành
+                    option(value="cancel" selected=(currentOrder.status == "cancel" ? true : false)) Hủy
             .inner-group
                 label.inner-label Danh sách tour
                 .inner-list
-                    .inner-item
-                        .inner-image
-                            img(src="/admin/assets/images/Tour-Icon.jpg")
-                        .inner-content
-                            .inner-order-name Tour Hạ Long
-                            .inner-order-text Người lớn: 3 x 1.500.000đ
-                            .inner-order-text Trẻ em: 2 x 1.300.000đ
-                            .inner-order-text Em bé: 2 x 1.000.000đ
-                            .inner-order-text Ngày khởi hành: 20/10/2024
-                            .inner-order-text Khởi hành tại: Hà Nội
-
-                    .inner-item
-                        .inner-image
-                            img(src="/admin/assets/images/Tour-Icon.jpg")
-                        .inner-content
-                            .inner-order-name Tour Hạ Long
-                            .inner-order-text Người lớn: 3 x 1.500.000đ
-                            .inner-order-text Trẻ em: 2 x 1.300.000đ
-                            .inner-order-text Em bé: 2 x 1.000.000đ
-                            .inner-order-text Ngày khởi hành: 20/10/2024
-                            .inner-order-text Khởi hành tại: Hà Nội
+                    each item in currentOrder.items
+                        .inner-item
+                            .inner-image
+                                img(src=item.avatar alt=item.name)
+                            .inner-content
+                                .inner-order-name #{item.name}
+                                .inner-order-text Người lớn: #{item.quantityAdult} x #{item.priceNewAdult.toLocaleString("vi-VN")}
+                                .inner-order-text Trẻ em: #{item.quantityChildren} x #{item.priceNewChildren.toLocaleString("vi-VN")}
+                                .inner-order-text Em bé: #{item.quantityBaby} x #{item.priceNewBaby.toLocaleString("vi-VN")}
+                                .inner-order-text Ngày khởi hành: #{item.departureDateFormatted}
+                                .inner-order-text Khởi hành tại: #{item.locationFromName}
             .inner-group
                 label.inner-label Thanh toán
                 .inner-order-total
-                    div Tổng tiền: 10.000.000đ
-                    div Giảm: 400.000đ
-                    div Mã giảm: TOURMUAHE2024
-                    div Thanh toán: <span class="inner-order-price">9.600.000đ</span>
+                    div Tổng tiền: #{currentOrder.subTotal.toLocaleString("vi-VN")}đ
+                    div Giảm: 0đ
+                    div Mã giảm: 
+                    div Thanh toán: <span class="inner-order-price">#{currentOrder.total.toLocaleString("vi-VN")}đ</span>
             .inner-button.inner-two-col
                 button Cập nhật
         .inner-back

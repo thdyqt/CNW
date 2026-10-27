@@ -85,10 +85,10 @@ block main
                                 div TTTT: #{orderDetail.paymentStatusName}
                             td.inner-center
                                 case orderDetail.status
-                                    when "active"
-                                        .badge.badge-green Hoạt động
-                                    when "inactive"
-                                        .badge.badge-red Tạm dừng
+                                    when "done"
+                                        .badge.badge-green Hoàn thành
+                                    when "cancel"
+                                        .badge.badge-red Hủy
                                     when "initial"
                                         .badge.badge-orange Khởi tạo
                             td.inner-center

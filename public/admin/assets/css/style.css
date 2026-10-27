@@ -1106,6 +1106,11 @@ a {
     color: var(--black);
 }
 
+.section-8 textarea {
+    height: 150px;
+    padding: 22px;
+}
+
 .section-8 .inner-input-image {
     width: 150px;
     height: 150px;
