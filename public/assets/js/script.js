@@ -384,8 +384,18 @@ if (orderForm) {
                         cart = cart.filter(item => item.checked == false);
                         localStorage.setItem("cart", JSON.stringify(cart));
 
-                        // Chuyển sang trang đặt hàng thành công
-                        window.location.href = `/order/success?orderCode=${data.orderCode}&phone=${phone}`;
+                        switch (method) {
+                            case "money":
+                            case "bank":
+                                // Chuyển sang trang đặt hàng thành công
+                                window.location.href = `/order/success?orderCode=${data.orderCode}&phone=${phone}`;
+                                break;
+                            case "vnpay":
+                                // Chuyển sang trang thanh toán bằng VNPay
+                                window.location.href = `/order/payment-vnpay?orderCode=${data.orderCode}`;
+                                break;
+
+                        }
                     }
                 });
 

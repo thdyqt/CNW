@@ -2,8 +2,8 @@ const moment = require("moment");
 const generateHelper = require("../../helpers/generate.helper");
 const Tour = require("../../models/tour.model");
 const Order = require("../../models/order.model");
-const City = require("../../models/city.model")
-
+const City = require("../../models/city.model");
+const sortHelper = require("../../helpers/sort.helper")
 
 module.exports.createPost = async (req, res) => {
     // Tạo mã đơn hàng
@@ -34,7 +34,7 @@ module.exports.createPost = async (req, res) => {
     // Thanh toán
     // Tạm tính
     req.body.subTotal = req.body.items.reduce((sum, item) => {
-        return sum + item.priceNewAdult * item.quantityAdult + item.priceNewChildren * item.quantityChildren + item.priceNewBaby * item.quantityChildren
+        return sum + item.priceNewAdult * item.quantityAdult + item.priceNewChildren * item.quantityChildren + item.priceNewBaby * item.quantityBaby
     }, 0);
 
     // Tổng tiền
@@ -69,8 +69,8 @@ module.exports.success = async (req, res) => {
             case "money":
                 orderDetail.paymentMethodName = "Thanh toán tiền mặt";
                 break;
-            case "momo":
-                orderDetail.paymentMethodName = "Ví MoMo";
+            case "vnpay":
+                orderDetail.paymentMethodName = "VNPay";
                 break;
             case "bank":
                 orderDetail.paymentMethodName = "Chuyển khoản ngân hàng";
@@ -123,5 +123,100 @@ module.exports.success = async (req, res) => {
         });
     } else {
         res.redirect("/");
+    }
+}
+
+module.exports.paymentVNPay = async(req, res) => {
+  const orderCode = req.query.orderCode;
+
+  const orderDetail = await Order.findOne({
+    code: orderCode,
+    deleted: false,
+    paymentStatus: "unpaid"
+  });
+
+  if (orderDetail) {
+    var ipAddr = req.headers['x-forwarded-for'] ||
+        req.connection.remoteAddress ||
+        req.socket.remoteAddress ||
+        req.connection.socket.remoteAddress;
+
+    var tmnCode = process.env.VNPAY_TMN_CODE;
+    var secretKey = process.env.VNPAY_SECRET;
+    var vnpUrl = process.env.VNPAY_URL;
+    var returnUrl = `${process.env.DOMAIN_WEBSITE}/order/payment-vnpay-result`;
+
+    var createDate = moment().format('YYYYMMDDHHmmss');
+    var orderId = `${orderDetail.code}-${Date.now()}`;
+    var amount = orderDetail.total;
+    var bankCode = "";
+    
+    var orderInfo = `Thanh toan don hang ${orderDetail.code}`;
+    var orderType = "other";
+    var locale = "vi"
+    var currCode = 'VND';
+    var vnp_Params = {};
+    vnp_Params['vnp_Version'] = '2.1.0';
+    vnp_Params['vnp_Command'] = 'pay';
+    vnp_Params['vnp_TmnCode'] = tmnCode;
+    // vnp_Params['vnp_Merchant'] = ''
+    vnp_Params['vnp_Locale'] = locale;
+    vnp_Params['vnp_CurrCode'] = currCode;
+    vnp_Params['vnp_TxnRef'] = orderId;
+    vnp_Params['vnp_OrderInfo'] = orderInfo;
+    vnp_Params['vnp_OrderType'] = orderType;
+    vnp_Params['vnp_Amount'] = amount * 100;
+    vnp_Params['vnp_ReturnUrl'] = returnUrl;
+    vnp_Params['vnp_IpAddr'] = ipAddr;
+    vnp_Params['vnp_CreateDate'] = createDate;
+    if(bankCode !== null && bankCode !== ''){
+        vnp_Params['vnp_BankCode'] = bankCode;
+    }
+
+    vnp_Params = sortHelper.sortObject(vnp_Params);
+
+    var querystring = require('qs');
+    var signData = querystring.stringify(vnp_Params, { encode: false });
+    var crypto = require("crypto");     
+    var hmac = crypto.createHmac("sha512", secretKey);
+    var signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+    vnp_Params['vnp_SecureHash'] = signed;
+    vnpUrl += '?' + querystring.stringify(vnp_Params, { encode: false });
+
+    res.redirect(vnpUrl)
+  }
+}
+
+module.exports.paymentVNPayResult = async(req, res) => {
+    let vnp_Params = req.query;
+    var secureHash = vnp_Params['vnp_SecureHash'];
+    
+    delete vnp_Params['vnp_SecureHash'];
+    delete vnp_Params['vnp_SecureHashType'];
+
+    vnp_Params = sortHelper.sortObject(vnp_Params);
+    var secretKey = process.env.VNPAY_SECRET;
+    var querystring = require('qs');
+    var signData = querystring.stringify(vnp_Params, { encode: false });
+    var crypto = require("crypto");     
+    var hmac = crypto.createHmac("sha512", secretKey);
+    var signed = hmac.update(Buffer.from(signData, 'utf-8')).digest("hex");
+        
+    if(secureHash === signed){
+        if(vnp_Params.vnp_ResponseCode == "00" && vnp_Params.vnp_TransactionStatus == "00") {
+            const [ orderCode, date ] = vnp_Params.vnp_TxnRef.split("-");
+
+            const order = await Order.findOneAndUpdate({
+                code: orderCode,
+                deleted: false
+            }, {
+                paymentStatus: "paid"
+            });
+
+            res.redirect(`${process.env.DOMAIN_WEBSITE}/order/success?orderCode=${orderCode}&phone=${order.phone}`);
+        }
+    }
+    else {
+        res.redirect(`/cart`);
     }
 }
