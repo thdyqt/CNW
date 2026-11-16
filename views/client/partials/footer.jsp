@@ -1,0 +1,46 @@
+<%@ page contentType="text/html;charset=UTF-8" language="java" %>
+
+<footer class="footer">
+    <div class="container">
+        <div class="inner-top">
+            <h2 class="inner-title">Đăng ký ngay để không bỏ lỡ các chương trình của chúng tôi</h2>
+            <form class="inner-form" id="email-form" action="">
+                <input id="email-input" placeholder="Nhập email của bạn.." name="email" type="email" />
+                <button type="submit">Đăng Ký Ngay</button>
+            </form>
+        </div>
+        <div class="inner-middle">
+            <nav class="inner-links">
+                <ul>
+                    <li><a href="${pageContext.request.contextPath}/">Trang Chủ</a></li>
+                    <li><a href="#">Tour Trong Nước</a></li>
+                    <li><a href="#">Tour Nước Ngoài</a></li>
+                    <li><a href="#">Tin Tức</a></li>
+                    <li><a href="#">Liên Hệ</a></li>
+                </ul>
+            </nav>
+            <nav class="inner-socials">
+                <ul>
+                    <li><a target="_blank" href="#"><i class="fa-brands fa-facebook"></i></a></li>
+                    <li><a target="_blank" href="#"><i class="fa-brands fa-twitter"></i></a></li>
+                    <li><a target="_blank" href="#"><i class="fa-brands fa-instagram"></i></a></li>
+                    <li><a target="_blank" href="#"><i class="fa-brands fa-youtube"></i></a></li>
+                </ul>
+            </nav>
+        </div>
+        <div class="inner-bottom">
+            <div class="inner-copyright">© 2024 28Tech. All rights reserved.</div>
+            <div class="inner-logo">
+                <a href="${pageContext.request.contextPath}/">
+                    <img alt="Logo" src="${pageContext.request.contextPath}/assets/images/Logo.svg" />
+                </a>
+            </div>
+            <nav class="inner-links">
+                <ul>
+                    <li><a href="#">Điều khoản dịch vụ</a></li>
+                    <li><a href="#">Chính sách bảo mật</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</footer>
