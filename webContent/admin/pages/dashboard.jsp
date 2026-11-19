@@ -103,7 +103,9 @@
                     <c:when test="${not empty recentOrders}">
                         <c:forEach var="order" items="${recentOrders}">
                             <tr>
-                                <td class="inner-code">${order.code}</td>
+                                <td class="inner-code">
+                                    <a href="${pageContext.request.contextPath}/${pathAdmin}/order/edit/${order.id}" class="inner-code">${order.code}</a>
+                                </td>
                                 <td>
                                     <div>Họ tên: ${order.fullName}</div>
                                     <div>SĐT: ${order.phone}</div>

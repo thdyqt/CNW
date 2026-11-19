@@ -27,6 +27,10 @@ public class OrderBO {
         return orderDAO.updateOrder(order);
     }
 
+    public boolean updateStatus(int id, String status) {
+        return orderDAO.updateStatus(id, status);
+    }
+
     public boolean deleteOrder(int id) {
         return orderDAO.deleteOrder(id);
     }

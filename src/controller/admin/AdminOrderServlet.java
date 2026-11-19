@@ -175,6 +175,9 @@ public class AdminOrderServlet extends HttpServlet {
                                 orderDAO.undoOrder(id);
                             } else if ("delete-destroy".equalsIgnoreCase(option)) {
                                 orderDAO.deleteDestroyOrder(id);
+                            } else if ("initial".equalsIgnoreCase(option) || "processing".equalsIgnoreCase(option)
+                                    || "success".equalsIgnoreCase(option) || "cancel".equalsIgnoreCase(option)) {
+                                orderDAO.updateStatus(id, option.toLowerCase());
                             }
                         }
                     }

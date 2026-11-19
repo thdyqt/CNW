@@ -162,6 +162,11 @@
     <servlet>
         <servlet-name>AdminUserServlet</servlet-name>
         <servlet-class>controller.admin.AdminUserServlet</servlet-class>
+        <multipart-config>
+            <max-file-size>20971520</max-file-size>
+            <max-request-size>41943040</max-request-size>
+            <file-size-threshold>0</file-size-threshold>
+        </multipart-config>
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminUserServlet</servlet-name>

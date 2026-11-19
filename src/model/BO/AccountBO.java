@@ -59,6 +59,22 @@ public class AccountBO {
         return accountDAO.deleteAccount(id);
     }
 
+    public boolean undoAccount(int id) {
+        return accountDAO.undoAccount(id);
+    }
+
+    public boolean deleteDestroyAccount(int id) {
+        return accountDAO.deleteDestroyAccount(id);
+    }
+
+    public List<Account> getTrashAccounts(String keyword, int page, int limit) {
+        return accountDAO.getTrashAccounts(keyword, page, limit);
+    }
+
+    public int countTrashAccounts(String keyword) {
+        return accountDAO.countTrashAccounts(keyword);
+    }
+
     public boolean changeMulti(List<Integer> ids, String option) {
         return accountDAO.changeMulti(ids, option);
     }

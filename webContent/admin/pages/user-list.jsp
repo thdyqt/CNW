@@ -53,6 +53,11 @@
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Tìm kiếm" search value="${param.keyword}" />
         </div>
+        <c:if test="${loggedInAdmin.hasPermission('user-create')}">
+            <div class="inner-button-create">
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/user/create">+ Tạo mới</a>
+            </div>
+        </c:if>
         <c:if test="${loggedInAdmin.hasPermission('user-trash') or loggedInAdmin.hasPermission('user-delete')}">
             <div class="inner-button-delete">
                 <a href="${pageContext.request.contextPath}/${pathAdmin}/user/trash">Thùng rác</a>

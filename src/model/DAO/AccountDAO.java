@@ -358,17 +358,133 @@ public class AccountDAO {
         return false;
     }
 
+    public boolean undoAccount(int id) {
+        String sql = "UPDATE accounts_admin SET deleted = 0, deleted_at = NULL, updated_at = NOW() WHERE id = ?";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean deleteDestroyAccount(int id) {
+        String sql = "DELETE FROM accounts_admin WHERE id = ?";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setInt(1, id);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public List<Account> getTrashAccounts(String keyword, int page, int limit) {
+        List<Account> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT a.*, r.name AS role_name, r.permissions AS role_permissions ")
+                .append("FROM accounts_admin a ")
+                .append("LEFT JOIN roles r ON a.role_id = r.id ")
+                .append("WHERE a.deleted = 1");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR a.phone LIKE ? OR a.position LIKE ?)");
+            String k = "%" + keyword.trim() + "%";
+            params.add(k);
+            params.add(k);
+            params.add(k);
+            params.add(k);
+        }
+
+        sql.append(" ORDER BY a.deleted_at DESC, a.id DESC");
+        sql.append(" LIMIT ? OFFSET ?");
+        params.add(limit > 0 ? limit : 10);
+        int offset = page > 0 ? (page - 1) * limit : 0;
+        params.add(offset);
+
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                    for (int i = 0; i < params.size(); i++) {
+                        ps.setObject(i + 1, params.get(i));
+                    }
+                    try (ResultSet rs = ps.executeQuery()) {
+                        while (rs.next()) {
+                            Account acc = mapResultSetToAccount(rs);
+                            try {
+                                java.sql.Timestamp delTime = rs.getTimestamp("deleted_at");
+                                if (delTime != null) {
+                                    acc.setDeletedAt(delTime);
+                                    acc.setDeletedAtFormatted(new java.text.SimpleDateFormat("dd/MM/yyyy HH:mm").format(delTime));
+                                }
+                            } catch (Exception ignored) {}
+                            list.add(acc);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return list;
+    }
+
+    public int countTrashAccounts(String keyword) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM accounts_admin a WHERE a.deleted = 1");
+        List<Object> params = new ArrayList<>();
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (a.full_name LIKE ? OR a.email LIKE ? OR a.phone LIKE ? OR a.position LIKE ?)");
+            String k = "%" + keyword.trim() + "%";
+            params.add(k);
+            params.add(k);
+            params.add(k);
+            params.add(k);
+        }
+
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+                    for (int i = 0; i < params.size(); i++) {
+                        ps.setObject(i + 1, params.get(i));
+                    }
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            return rs.getInt(1);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
     public boolean changeMulti(List<Integer> ids, String option) {
         if (ids == null || ids.isEmpty() || option == null) {
             return false;
         }
-        StringBuilder sql = new StringBuilder("UPDATE accounts_admin SET ");
+        StringBuilder sql = new StringBuilder();
         if ("active".equalsIgnoreCase(option)) {
-            sql.append("status = 'active', updated_at = NOW()");
+            sql.append("UPDATE accounts_admin SET status = 'active', updated_at = NOW()");
         } else if ("inactive".equalsIgnoreCase(option)) {
-            sql.append("status = 'inactive', updated_at = NOW()");
+            sql.append("UPDATE accounts_admin SET status = 'inactive', updated_at = NOW()");
         } else if ("delete".equalsIgnoreCase(option)) {
-            sql.append("deleted = 1, deleted_at = NOW()");
+            sql.append("UPDATE accounts_admin SET deleted = 1, deleted_at = NOW()");
+        } else if ("undo".equalsIgnoreCase(option)) {
+            sql.append("UPDATE accounts_admin SET deleted = 0, deleted_at = NULL, updated_at = NOW()");
+        } else if ("delete-destroy".equalsIgnoreCase(option)) {
+            sql.append("DELETE FROM accounts_admin");
         } else {
             return false;
         }

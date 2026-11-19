@@ -931,6 +931,12 @@ if (websiteForm) {
             const phone = event.target.phone.value;
             const email = event.target.email.value;
             const address = event.target.address.value;
+            const facebook = event.target.facebook ? event.target.facebook.value : "";
+            const instagram = event.target.instagram ? event.target.instagram.value : "";
+            const github = event.target.github ? event.target.github.value : (event.target.whatsapp ? event.target.whatsapp.value : "");
+            const whatsapp = github;
+            const youtube = event.target.youtube ? event.target.youtube.value : "";
+            const copyright = event.target.copyright ? event.target.copyright.value : "";
 
             const logos = filePond.logo.getFiles();
             let logo = null;
@@ -967,6 +973,12 @@ if (websiteForm) {
             formData.append("phone", phone);
             formData.append("email", email);
             formData.append("address", address);
+            formData.append("facebook", facebook);
+            formData.append("instagram", instagram);
+            formData.append("github", github);
+            formData.append("whatsapp", whatsapp);
+            formData.append("youtube", youtube);
+            formData.append("copyright", copyright);
             formData.append("logo", logo);
             formData.append("favicon", favicon);
 

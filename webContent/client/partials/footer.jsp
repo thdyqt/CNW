@@ -21,15 +21,15 @@
             </nav>
             <nav class="inner-socials">
                 <ul>
-                    <li><a target="_blank" href="#"><i class="fa-brands fa-facebook"></i></a></li>
-                    <li><a target="_blank" href="#"><i class="fa-brands fa-twitter"></i></a></li>
-                    <li><a target="_blank" href="#"><i class="fa-brands fa-instagram"></i></a></li>
-                    <li><a target="_blank" href="#"><i class="fa-brands fa-youtube"></i></a></li>
+                    <li><a target="_blank" href="${not empty settingWebsiteInfo.facebook ? settingWebsiteInfo.facebook : '#'}" title="Facebook"><i class="fa-brands fa-facebook"></i></a></li>
+                    <li><a target="_blank" href="${not empty settingWebsiteInfo.instagram ? settingWebsiteInfo.instagram : '#'}" title="Instagram"><i class="fa-brands fa-instagram"></i></a></li>
+                    <li><a target="_blank" href="${not empty settingWebsiteInfo.github ? settingWebsiteInfo.github : '#'}" title="GitHub"><i class="fa-brands fa-github"></i></a></li>
+                    <li><a target="_blank" href="${not empty settingWebsiteInfo.youtube ? settingWebsiteInfo.youtube : '#'}" title="YouTube"><i class="fa-brands fa-youtube"></i></a></li>
                 </ul>
             </nav>
         </div>
         <div class="inner-bottom">
-            <div class="inner-copyright">© 2026 DUTTech. All rights reserved.</div>
+            <div class="inner-copyright">${not empty settingWebsiteInfo.copyright ? settingWebsiteInfo.copyright : '© 2026 DUTTech. All rights reserved.'}</div>
             <div class="inner-logo">
                 <a href="${pageContext.request.contextPath}/">
                     <img alt="Logo" src="${settingWebsiteInfo.logo}" />

@@ -52,6 +52,21 @@
 <!-- Section-5: Tìm kiếm & Thao tác -->
 <div class="section-5">
     <div class="inner-wrap">
+        <div class="inner-check-status" change-multi data-api="${pageContext.request.contextPath}/${pathAdmin}/order/change-multi">
+            <div class="inner-item">
+                <select>
+                    <option value="">-- Hành động --</option>
+                    <option value="initial">Khởi tạo</option>
+                    <option value="processing">Đang xử lý</option>
+                    <option value="success">Hoàn thành</option>
+                    <option value="cancel">Hủy</option>
+                    <option value="delete">Xóa</option>
+                </select>
+            </div>
+            <div class="inner-item">
+                <button type="button">Áp dụng</button>
+            </div>
+        </div>
         <div class="inner-search">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Tìm kiếm" search value="${param.keyword}" />
@@ -70,6 +85,9 @@
         <table>
             <thead>
                 <tr>
+                    <th class="inner-center" style="width: 40px;">
+                        <input class="inner-check" type="checkbox" check-all />
+                    </th>
                     <th>Mã</th>
                     <th>Thông tin khách</th>
                     <th>Danh sách tour</th>
@@ -84,6 +102,9 @@
                     <c:when test="${not empty orderList}">
                         <c:forEach var="orderDetail" items="${orderList}">
                             <tr>
+                                <td class="inner-center">
+                                    <input class="inner-check" type="checkbox" check-item="${orderDetail.id}" />
+                                </td>
                                 <td class="inner-code">
                                     <a href="${pageContext.request.contextPath}/${pathAdmin}/order/edit/${orderDetail.id}" class="inner-code">${orderDetail.code}</a>
                                 </td>
@@ -156,7 +177,7 @@
                     </c:when>
                     <c:otherwise>
                         <tr>
-                            <td colspan="7" class="inner-center" style="padding: 30px;">Không có đơn hàng nào!</td>
+                            <td colspan="8" class="inner-center" style="padding: 30px;">Không có đơn hàng nào!</td>
                         </tr>
                     </c:otherwise>
                 </c:choose>

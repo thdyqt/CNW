@@ -16,6 +16,10 @@ public class Account {
     private String status;
     private String token;
     private String password;
+    private boolean deleted;
+    private java.util.Date deletedAt;
+    private String deletedBy;
+    private String deletedAtFormatted;
     private List<String> permissions = new ArrayList<>();
 
     public Account() {
@@ -90,5 +94,17 @@ public class Account {
         }
         return permissions.contains(perm.trim());
     }
+
+    public boolean isDeleted() { return deleted; }
+    public void setDeleted(boolean deleted) { this.deleted = deleted; }
+
+    public java.util.Date getDeletedAt() { return deletedAt; }
+    public void setDeletedAt(java.util.Date deletedAt) { this.deletedAt = deletedAt; }
+
+    public String getDeletedBy() { return deletedBy; }
+    public void setDeletedBy(String deletedBy) { this.deletedBy = deletedBy; }
+
+    public String getDeletedAtFormatted() { return deletedAtFormatted; }
+    public void setDeletedAtFormatted(String deletedAtFormatted) { this.deletedAtFormatted = deletedAtFormatted; }
 }
 

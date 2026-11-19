@@ -24,6 +24,26 @@
             <input type="text" id="address" name="address" value="${settingWebsiteInfo.address}" />
         </div>
         <div class="inner-group">
+            <label class="inner-label" for="facebook">Link Facebook</label>
+            <input type="text" id="facebook" name="facebook" placeholder="https://facebook.com/..." value="${settingWebsiteInfo.facebook}" />
+        </div>
+        <div class="inner-group">
+            <label class="inner-label" for="instagram">Link Instagram</label>
+            <input type="text" id="instagram" name="instagram" placeholder="https://instagram.com/..." value="${settingWebsiteInfo.instagram}" />
+        </div>
+        <div class="inner-group">
+            <label class="inner-label" for="github">Link GitHub</label>
+            <input type="text" id="github" name="github" placeholder="https://github.com/..." value="${settingWebsiteInfo.github}" />
+        </div>
+        <div class="inner-group">
+            <label class="inner-label" for="youtube">Link YouTube</label>
+            <input type="text" id="youtube" name="youtube" placeholder="https://youtube.com/..." value="${settingWebsiteInfo.youtube}" />
+        </div>
+        <div class="inner-group inner-two-col">
+            <label class="inner-label" for="copyright">Bản quyền chân trang (Copyright)</label>
+            <input type="text" id="copyright" name="copyright" placeholder="© 2026 DUTTech. All rights reserved." value="${settingWebsiteInfo.copyright}" />
+        </div>
+        <div class="inner-group">
             <label class="inner-label" for="logo">Logo</label>
             <div class="inner-input-image" image-default="${settingWebsiteInfo.logo}">
                 <input type="file" id="logo" name="logo" accept="image/*" filepond-image />

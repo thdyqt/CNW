@@ -254,6 +254,22 @@ public class OrderDAO {
         return false;
     }
 
+    public boolean updateStatus(int id, String status) {
+        String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, status);
+                    ps.setInt(2, id);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean deleteOrder(int id, String deletedBy) {
         String sql = "UPDATE orders SET deleted = 1, deleted_by = ?, deleted_at = NOW(), updated_at = NOW() WHERE id = ?";
         try (Connection conn = DBContext.getConnection()) {

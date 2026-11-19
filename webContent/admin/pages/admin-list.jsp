@@ -66,6 +66,11 @@
                 <a href="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/create">+ Tạo mới</a>
             </div>
         </c:if>
+        <c:if test="${loggedInAdmin.hasPermission('account-trash') or loggedInAdmin.hasPermission('account-delete')}">
+            <div class="inner-button-delete">
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/trash">Thùng rác</a>
+            </div>
+        </c:if>
     </div>
 </div>
 

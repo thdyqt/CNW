@@ -13,7 +13,7 @@ public class SettingDAO {
                 try (PreparedStatement ps = conn.prepareStatement(sql);
                      ResultSet rs = ps.executeQuery()) {
                     if (rs.next()) {
-                        return new SettingWebsiteInfo(
+                        SettingWebsiteInfo info = new SettingWebsiteInfo(
                             rs.getInt("id"),
                             rs.getString("website_name"),
                             rs.getString("phone"),
@@ -22,20 +22,26 @@ public class SettingDAO {
                             rs.getString("logo"),
                             rs.getString("favicon")
                         );
+                        try { info.setFacebook(rs.getString("facebook")); } catch (Exception ignored) {}
+                        try { info.setInstagram(rs.getString("instagram")); } catch (Exception ignored) {}
+                        try { info.setWhatsapp(rs.getString("whatsapp")); } catch (Exception ignored) {}
+                        try { info.setGithub(rs.getString("github")); } catch (Exception ignored) {}
+                        try { info.setYoutube(rs.getString("youtube")); } catch (Exception ignored) {}
+                        try { info.setCopyright(rs.getString("copyright")); } catch (Exception ignored) {}
+                        return info;
                     }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
-        // Fallback default setting
         return new SettingWebsiteInfo();
     }
 
     public boolean updateSetting(SettingWebsiteInfo info) {
         try (Connection conn = DBContext.getConnection()) {
             if (conn != null) {
-                StringBuilder sql = new StringBuilder("UPDATE setting_website_info SET website_name = ?, phone = ?, email = ?, address = ?");
+                StringBuilder sql = new StringBuilder("UPDATE setting_website_info SET website_name = ?, phone = ?, email = ?, address = ?, facebook = ?, instagram = ?, github = ?, whatsapp = ?, youtube = ?, copyright = ?");
                 if (info.getLogo() != null) {
                     sql.append(", logo = ?");
                 }
@@ -46,10 +52,16 @@ public class SettingDAO {
 
                 try (PreparedStatement ps = conn.prepareStatement(sql.toString())) {
                     int idx = 1;
-                    ps.setString(idx++, info.getWebsiteName());
-                    ps.setString(idx++, info.getPhone());
-                    ps.setString(idx++, info.getEmail());
-                    ps.setString(idx++, info.getAddress());
+                    ps.setString(idx++, info.getWebsiteName() != null ? info.getWebsiteName() : "");
+                    ps.setString(idx++, info.getPhone() != null ? info.getPhone() : "");
+                    ps.setString(idx++, info.getEmail() != null ? info.getEmail() : "");
+                    ps.setString(idx++, info.getAddress() != null ? info.getAddress() : "");
+                    ps.setString(idx++, info.getFacebook() != null ? info.getFacebook() : "");
+                    ps.setString(idx++, info.getInstagram() != null ? info.getInstagram() : "");
+                    ps.setString(idx++, info.getGithub() != null ? info.getGithub() : "");
+                    ps.setString(idx++, info.getWhatsapp() != null ? info.getWhatsapp() : "");
+                    ps.setString(idx++, info.getYoutube() != null ? info.getYoutube() : "");
+                    ps.setString(idx++, info.getCopyright() != null ? info.getCopyright() : "© 2026 DUTTech. All rights reserved.");
                     if (info.getLogo() != null) {
                         ps.setString(idx++, info.getLogo());
                     }
@@ -63,7 +75,6 @@ public class SettingDAO {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        return true;
+        return false;
     }
 }
-

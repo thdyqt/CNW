@@ -27,6 +27,26 @@ public class AdminSettingServlet extends HttpServlet {
     private final RoleDAO roleDAO = new RoleDAO();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    private String getFormValue(HttpServletRequest req, String name) {
+        String val = req.getParameter(name);
+        if (val != null) return val;
+        try {
+            Part part = req.getPart(name);
+            if (part != null) {
+                try (java.io.InputStream is = part.getInputStream();
+                     java.io.ByteArrayOutputStream baos = new java.io.ByteArrayOutputStream()) {
+                    byte[] buf = new byte[1024];
+                    int len;
+                    while ((len = is.read(buf)) != -1) {
+                        baos.write(buf, 0, len);
+                    }
+                    return baos.toString("UTF-8");
+                }
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
     public static class PermissionItem {
         private String label;
         private String value;
@@ -63,6 +83,7 @@ public class AdminSettingServlet extends HttpServlet {
         list.add(new PermissionItem("Thùng rác đơn hàng", "order-trash"));
         // Người dùng
         list.add(new PermissionItem("Xem người dùng", "user-view"));
+        list.add(new PermissionItem("Tạo người dùng", "user-create"));
         list.add(new PermissionItem("Sửa người dùng", "user-edit"));
         list.add(new PermissionItem("Xóa người dùng", "user-delete"));
         list.add(new PermissionItem("Thùng rác người dùng", "user-trash"));
@@ -84,6 +105,7 @@ public class AdminSettingServlet extends HttpServlet {
         list.add(new PermissionItem("Tạo tài khoản quản trị", "account-create"));
         list.add(new PermissionItem("Sửa tài khoản quản trị", "account-edit"));
         list.add(new PermissionItem("Xóa tài khoản quản trị", "account-delete"));
+        list.add(new PermissionItem("Thùng rác tài khoản quản trị", "account-trash"));
         return list;
     }
 
@@ -91,7 +113,7 @@ public class AdminSettingServlet extends HttpServlet {
     protected void service(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         String method = request.getMethod();
-        if ("PATCH".equalsIgnoreCase(method)) {
+        if ("PATCH".equalsIgnoreCase(method) || "DELETE".equalsIgnoreCase(method)) {
             doPost(request, response);
         } else {
             super.service(request, response);
@@ -136,6 +158,39 @@ public class AdminSettingServlet extends HttpServlet {
             request.setAttribute("roleList", roleDAO.getAllRoles());
             request.setAttribute("pageTitle", "Chỉnh sửa tài khoản quản trị");
             request.getRequestDispatcher("/webContent/admin/pages/admin-edit.jsp").forward(request, response);
+            return;
+        }
+
+        if (path.contains("/account-admin/trash")) {
+            String keyword = request.getParameter("keyword");
+            int page = 1;
+            try {
+                String pageStr = request.getParameter("page");
+                if (pageStr != null && !pageStr.isEmpty()) {
+                    page = Integer.parseInt(pageStr);
+                }
+            } catch (Exception ignored) {}
+
+            int limit = 10;
+            int total = accountDAO.countTrashAccounts(keyword);
+            List<Account> accountTrashList = accountDAO.getTrashAccounts(keyword, page, limit);
+
+            int totalPages = (int) Math.ceil((double) total / limit);
+            if (totalPages == 0) totalPages = 1;
+            int start = total == 0 ? 0 : (page - 1) * limit + 1;
+            int end = Math.min(page * limit, total);
+
+            Map<String, Object> pagination = new HashMap<>();
+            pagination.put("currentPage", page);
+            pagination.put("total", total);
+            pagination.put("totalPages", totalPages);
+            pagination.put("start", start);
+            pagination.put("end", end);
+
+            request.setAttribute("accountTrashList", accountTrashList);
+            request.setAttribute("pagination", pagination);
+            request.setAttribute("pageTitle", "Thùng rác tài khoản quản trị");
+            request.getRequestDispatcher("/webContent/admin/pages/admin-trash.jsp").forward(request, response);
             return;
         }
 
@@ -300,10 +355,22 @@ public class AdminSettingServlet extends HttpServlet {
             SettingWebsiteInfo current = settingDAO.getSetting();
             SettingWebsiteInfo info = new SettingWebsiteInfo();
             info.setId(current != null ? current.getId() : 1);
-            info.setWebsiteName(request.getParameter("websiteName"));
-            info.setPhone(request.getParameter("phone"));
-            info.setEmail(request.getParameter("email"));
-            info.setAddress(request.getParameter("address"));
+            info.setWebsiteName(getFormValue(request, "websiteName"));
+            info.setPhone(getFormValue(request, "phone"));
+            info.setEmail(getFormValue(request, "email"));
+            info.setAddress(getFormValue(request, "address"));
+            info.setFacebook(getFormValue(request, "facebook"));
+            info.setInstagram(getFormValue(request, "instagram"));
+            
+            String githubVal = getFormValue(request, "github");
+            if (githubVal == null || githubVal.isEmpty()) {
+                githubVal = getFormValue(request, "whatsapp");
+            }
+            info.setGithub(githubVal);
+            info.setWhatsapp(githubVal);
+
+            info.setYoutube(getFormValue(request, "youtube"));
+            info.setCopyright(getFormValue(request, "copyright"));
 
             // Logo upload / keep / delete
             String newLogoUrl = null;
@@ -314,7 +381,7 @@ public class AdminSettingServlet extends HttpServlet {
                 }
             } catch (Exception ignored) {}
 
-            String logoParam = request.getParameter("logo");
+            String logoParam = getFormValue(request, "logo");
             if ("deleted".equalsIgnoreCase(logoParam)) {
                 newLogoUrl = "";
             } else if (newLogoUrl == null && current != null) {
@@ -331,7 +398,7 @@ public class AdminSettingServlet extends HttpServlet {
                 }
             } catch (Exception ignored) {}
 
-            String faviconParam = request.getParameter("favicon");
+            String faviconParam = getFormValue(request, "favicon");
             if ("deleted".equalsIgnoreCase(faviconParam)) {
                 newFaviconUrl = "";
             } else if (newFaviconUrl == null && current != null) {
@@ -340,7 +407,8 @@ public class AdminSettingServlet extends HttpServlet {
             info.setFavicon(newFaviconUrl);
 
             settingDAO.updateSetting(info);
-            getServletContext().setAttribute("settingWebsiteInfo", info);
+            SettingWebsiteInfo updatedInfo = settingDAO.getSetting();
+            getServletContext().setAttribute("settingWebsiteInfo", updatedInfo);
 
             response.setContentType("application/json;charset=UTF-8");
             Map<String, Object> result = new HashMap<>();
@@ -360,6 +428,40 @@ public class AdminSettingServlet extends HttpServlet {
                 Map<String, Object> result = new HashMap<>();
                 result.put("code", "success");
                 result.put("message", "Xóa tài khoản thành công!");
+                response.getWriter().write(objectMapper.writeValueAsString(result));
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Account Admin: Undo
+        if (path.contains("/account-admin/undo/")) {
+            String idStr = path.substring(path.lastIndexOf("/") + 1);
+            try {
+                int id = Integer.parseInt(idStr);
+                accountDAO.undoAccount(id);
+                response.setContentType("application/json;charset=UTF-8");
+                Map<String, Object> result = new HashMap<>();
+                result.put("code", "success");
+                result.put("message", "Khôi phục tài khoản thành công!");
+                response.getWriter().write(objectMapper.writeValueAsString(result));
+                return;
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Account Admin: Delete Destroy
+        if (path.contains("/account-admin/delete-destroy/")) {
+            String idStr = path.substring(path.lastIndexOf("/") + 1);
+            try {
+                int id = Integer.parseInt(idStr);
+                accountDAO.deleteDestroyAccount(id);
+                response.setContentType("application/json;charset=UTF-8");
+                Map<String, Object> result = new HashMap<>();
+                result.put("code", "success");
+                result.put("message", "Xóa vĩnh viễn tài khoản thành công!");
                 response.getWriter().write(objectMapper.writeValueAsString(result));
                 return;
             } catch (Exception e) {

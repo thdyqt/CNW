@@ -84,6 +84,12 @@ public class AdminUserServlet extends HttpServlet {
             return;
         }
 
+        if (path.contains("/user/create")) {
+            request.setAttribute("pageTitle", "Tạo mới người dùng");
+            request.getRequestDispatcher("/webContent/admin/pages/user-create.jsp").forward(request, response);
+            return;
+        }
+
         if (path.contains("/user/edit/")) {
             String idStr = path.substring(path.lastIndexOf("/") + 1);
             int id = 0;
@@ -232,6 +238,70 @@ public class AdminUserServlet extends HttpServlet {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        // Create User
+        if (path.contains("/user/create")) {
+            response.setContentType("application/json;charset=UTF-8");
+            Map<String, Object> result = new HashMap<>();
+
+            String fullName = request.getParameter("fullName");
+            String email = request.getParameter("email");
+            String phone = request.getParameter("phone");
+            String address = request.getParameter("address");
+            String password = request.getParameter("password");
+            String status = request.getParameter("status");
+
+            if (fullName == null || fullName.trim().isEmpty() || email == null || email.trim().isEmpty()) {
+                result.put("code", "error");
+                result.put("message", "Họ tên và email không được để trống!");
+                response.getWriter().write(objectMapper.writeValueAsString(result));
+                return;
+            }
+
+            if (password == null || password.trim().length() < 6) {
+                result.put("code", "error");
+                result.put("message", "Mật khẩu phải có ít nhất 6 ký tự!");
+                response.getWriter().write(objectMapper.writeValueAsString(result));
+                return;
+            }
+
+            if (userDAO.getUserByEmail(email.trim()) != null) {
+                result.put("code", "error");
+                result.put("message", "Email này đã được sử dụng bởi một tài khoản khác!");
+                response.getWriter().write(objectMapper.writeValueAsString(result));
+                return;
+            }
+
+            User newUser = new User();
+            newUser.setFullName(fullName.trim());
+            newUser.setEmail(email.trim());
+            newUser.setPhone(phone != null ? phone.trim() : "");
+            newUser.setAddress(address != null ? address.trim() : "");
+            newUser.setStatus(status != null && !status.isEmpty() ? status : "active");
+            newUser.setCreatedBy(actor);
+
+            String avatarUrl = null;
+            try {
+                Part avatarPart = request.getPart("avatar");
+                if (avatarPart != null && avatarPart.getSize() > 0 && avatarPart.getContentType() != null && avatarPart.getContentType().startsWith("image/")) {
+                    avatarUrl = CloudinaryUtil.upload(avatarPart);
+                }
+            } catch (Exception ignored) {}
+            if (avatarUrl != null) {
+                newUser.setAvatar(avatarUrl);
+            }
+
+            boolean success = userDAO.createUser(newUser, password.trim());
+            if (success) {
+                result.put("code", "success");
+                result.put("message", "Tạo tài khoản người dùng thành công!");
+            } else {
+                result.put("code", "error");
+                result.put("message", "Tạo tài khoản thất bại, vui lòng thử lại!");
+            }
+            response.getWriter().write(objectMapper.writeValueAsString(result));
+            return;
         }
 
         // 3. Edit User
