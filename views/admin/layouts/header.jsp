@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://unpkg.com/filepond@^4/dist/filepond.css">
     <link rel="stylesheet" href="https://unpkg.com/filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css">
-    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/assets/css/style.css?v=5">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/admin/assets/css/style.css?v=6">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="${pageContext.request.contextPath}/admin/assets/js/notify.js?v=4"></script>
     <script src="https://cdn.tiny.cloud/1/g7onstdn9mpkxz9eie04kc8ods3a56qygq0xj7mo254847xh/tinymce/8/tinymce.min.js" referrerpolicy="origin" crossorigin="anonymous"></script>

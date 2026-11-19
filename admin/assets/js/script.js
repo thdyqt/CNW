@@ -335,18 +335,144 @@ const drawChart = (now) => {
 };
 
 if (revenueChart) {
-    const input = document.querySelector(".inner-filler input");
-    const now = new Date();
-    if (input) {
-        const monthStr = String(now.getMonth() + 1).padStart(2, "0");
-        input.value = `${now.getFullYear()}-${monthStr}`;
-        input.addEventListener("change", () => {
-            if (input.value) {
-                drawChart(input.value);
+    const vnPicker = document.querySelector("#vn-month-picker");
+    const today = new Date();
+    const currentActualYear = today.getFullYear();
+    const currentActualMonth = today.getMonth() + 1;
+
+    let selectedYear = currentActualYear;
+    let selectedMonth = currentActualMonth;
+    let viewYear = selectedYear;
+
+    if (vnPicker) {
+        const pickerBtn = vnPicker.querySelector("#vn-picker-btn");
+        const pickerLabel = vnPicker.querySelector("#vn-picker-label");
+        const hiddenInput = vnPicker.querySelector("#revenue-month-input");
+        const pickerYearDisplay = vnPicker.querySelector("#vn-picker-year");
+        const pickerMonthsGrid = vnPicker.querySelector("#vn-picker-months");
+        const prevYearBtn = vnPicker.querySelector("#vn-prev-year");
+        const nextYearBtn = vnPicker.querySelector("#vn-next-year");
+        const todayBtn = vnPicker.querySelector("#vn-picker-today");
+        const clearBtn = vnPicker.querySelector("#vn-picker-clear");
+
+        const renderMonths = () => {
+            if (!pickerMonthsGrid) return;
+            pickerMonthsGrid.innerHTML = "";
+            if (pickerYearDisplay) {
+                pickerYearDisplay.textContent = `Năm ${viewYear}`;
+            }
+
+            for (let m = 1; m <= 12; m++) {
+                const btn = document.createElement("button");
+                btn.type = "button";
+                btn.className = "vn-month-item";
+                btn.textContent = `Tháng ${m}`;
+
+                if (viewYear === selectedYear && m === selectedMonth) {
+                    btn.classList.add("active");
+                }
+                if (viewYear === currentActualYear && m === currentActualMonth) {
+                    btn.classList.add("is-current");
+                }
+
+                btn.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    selectedYear = viewYear;
+                    selectedMonth = m;
+                    updatePickerDisplay();
+                    vnPicker.classList.remove("active");
+                    const monthVal = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
+                    drawChart(monthVal);
+                });
+
+                pickerMonthsGrid.appendChild(btn);
+            }
+        };
+
+        const updatePickerDisplay = () => {
+            const monthStr = String(selectedMonth).padStart(2, "0");
+            if (pickerLabel) {
+                pickerLabel.textContent = `Tháng ${selectedMonth}/${selectedYear}`;
+            }
+            if (hiddenInput) {
+                hiddenInput.value = `${selectedYear}-${monthStr}`;
+            }
+            renderMonths();
+        };
+
+        pickerBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            vnPicker.classList.toggle("active");
+            if (vnPicker.classList.contains("active")) {
+                viewYear = selectedYear;
+                renderMonths();
             }
         });
+
+        if (prevYearBtn) {
+            prevYearBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                viewYear--;
+                renderMonths();
+            });
+        }
+
+        if (nextYearBtn) {
+            nextYearBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                viewYear++;
+                renderMonths();
+            });
+        }
+
+        if (todayBtn) {
+            todayBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                selectedYear = currentActualYear;
+                selectedMonth = currentActualMonth;
+                viewYear = selectedYear;
+                updatePickerDisplay();
+                vnPicker.classList.remove("active");
+                const monthVal = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
+                drawChart(monthVal);
+            });
+        }
+
+        if (clearBtn) {
+            clearBtn.addEventListener("click", (e) => {
+                e.stopPropagation();
+                selectedYear = currentActualYear;
+                selectedMonth = currentActualMonth;
+                viewYear = selectedYear;
+                updatePickerDisplay();
+                vnPicker.classList.remove("active");
+                const monthVal = `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`;
+                drawChart(monthVal);
+            });
+        }
+
+        document.addEventListener("click", (e) => {
+            if (!vnPicker.contains(e.target)) {
+                vnPicker.classList.remove("active");
+            }
+        });
+
+        // Initial setup
+        updatePickerDisplay();
+    } else {
+        const input = document.querySelector(".inner-filler input");
+        if (input) {
+            const monthStr = String(today.getMonth() + 1).padStart(2, "0");
+            input.value = `${today.getFullYear()}-${monthStr}`;
+            input.addEventListener("change", () => {
+                if (input.value) {
+                    drawChart(input.value);
+                }
+            });
+        }
     }
-    drawChart(now);
+
+    drawChart(today);
 }
 
 // Category Create

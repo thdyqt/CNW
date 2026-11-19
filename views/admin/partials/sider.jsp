@@ -73,7 +73,7 @@
             </a>
         </li>
         <li>
-            <a class="inner-logout" href="${pageContext.request.contextPath}/${pathAdmin}/account/login">
+            <a class="inner-logout" href="${pageContext.request.contextPath}/${pathAdmin}/account/logout">
                 <i class="fa-solid fa-power-off"></i>
                 Đăng xuất
             </a>

@@ -52,7 +52,30 @@
     <div class="inner-head">
         <h2 class="inner-title">Biểu đồ doanh thu</h2>
         <div class="inner-filler">
-            <input type="month" name="month" />
+            <div class="vn-month-picker" id="vn-month-picker">
+                <button type="button" class="vn-picker-btn" id="vn-picker-btn" aria-label="Chọn tháng và năm">
+                    <i class="fa-regular fa-calendar-days"></i>
+                    <span id="vn-picker-label">Tháng 11/2026</span>
+                    <i class="fa-solid fa-chevron-down vn-picker-arrow"></i>
+                </button>
+                <input type="hidden" name="month" id="revenue-month-input" value="2026-11" />
+                <div class="vn-picker-dropdown" id="vn-picker-dropdown">
+                    <div class="vn-picker-header">
+                        <button type="button" class="vn-picker-nav" id="vn-prev-year" title="Năm trước">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <span class="vn-picker-year" id="vn-picker-year">2026</span>
+                        <button type="button" class="vn-picker-nav" id="vn-next-year" title="Năm sau">
+                            <i class="fa-solid fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="vn-picker-months" id="vn-picker-months"></div>
+                    <div class="vn-picker-footer">
+                        <button type="button" class="vn-footer-btn vn-btn-clear" id="vn-picker-clear">Xóa</button>
+                        <button type="button" class="vn-footer-btn vn-btn-today" id="vn-picker-today">Tháng này</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="inner-chart">

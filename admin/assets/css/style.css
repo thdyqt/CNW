@@ -553,17 +553,219 @@ a {
     margin: 0;
 }
 
+.section-2 .inner-filler {
+    position: relative;
+}
+
 .section-2 .inner-filler input {
     width: 160px;
-    height: 28px;
+    height: 32px;
+    padding: 0 14px;
+    background-color: #FCFDFD;
+    color: #2B3034;
+    font-weight: 600;
+    font-size: 13px;
+    outline: none;
+    border: 1px solid #D5D5D5;
+    border-radius: 6px;
+}
+
+/* Custom Vietnamese Month Picker */
+.vn-month-picker {
+    position: relative;
+    user-select: none;
+}
+
+.vn-picker-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    height: 36px;
     padding: 0 16px;
     background-color: #FCFDFD;
     color: #2B3034;
     font-weight: 600;
-    font-size: 12px;
-    outline: none;
+    font-size: 13px;
     border: 1px solid #D5D5D5;
-    border-radius: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.vn-picker-btn:hover {
+    border-color: #4880FF;
+    color: #4880FF;
+    background-color: #FFFFFF;
+}
+
+.vn-picker-btn i.fa-calendar-days {
+    color: #4880FF;
+    font-size: 14px;
+}
+
+.vn-picker-arrow {
+    font-size: 11px;
+    color: #8A92A6;
+    transition: transform 0.2s ease;
+    margin-left: 2px;
+}
+
+.vn-month-picker.active .vn-picker-arrow {
+    transform: rotate(180deg);
+    color: #4880FF;
+}
+
+.vn-month-picker.active .vn-picker-btn {
+    border-color: #4880FF;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(72, 128, 255, 0.15);
+}
+
+.vn-picker-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 270px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+    padding: 14px;
+    z-index: 1050;
+    display: none;
+}
+
+.vn-month-picker.active .vn-picker-dropdown {
+    display: block;
+    animation: vnPickerDropdownFade 0.15s ease-out;
+}
+
+@keyframes vnPickerDropdownFade {
+    from {
+        opacity: 0;
+        transform: translateY(-6px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.vn-picker-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #F1F5F9;
+}
+
+.vn-picker-nav {
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    color: #475569;
+    cursor: pointer;
+    font-size: 11px;
+    transition: all 0.2s ease;
+}
+
+.vn-picker-nav:hover {
+    background: #4880FF;
+    color: #FFFFFF;
+    border-color: #4880FF;
+}
+
+.vn-picker-year {
+    font-weight: 700;
+    font-size: 15px;
+    color: #1E293B;
+}
+
+.vn-picker-months {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.vn-month-item {
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #334155;
+    background: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.vn-month-item:hover {
+    background: #EEF2F6;
+    border-color: #CBD5E1;
+    color: #0F172A;
+}
+
+.vn-month-item.active {
+    background: #4880FF;
+    border-color: #4880FF;
+    color: #FFFFFF !important;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(72, 128, 255, 0.35);
+}
+
+.vn-month-item.is-current {
+    border-color: #4880FF;
+    color: #4880FF;
+    font-weight: 700;
+}
+
+.vn-month-item.active.is-current {
+    color: #FFFFFF !important;
+}
+
+.vn-picker-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid #F1F5F9;
+}
+
+.vn-footer-btn {
+    background: transparent;
+    border: none;
+    font-size: 12.5px;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.vn-btn-clear {
+    color: #64748B;
+}
+
+.vn-btn-clear:hover {
+    background: #F1F5F9;
+    color: #0F172A;
+}
+
+.vn-btn-today {
+    color: #4880FF;
+}
+
+.vn-btn-today:hover {
+    background: rgba(72, 128, 255, 0.1);
 }
 
 .section-2 .inner-chart {
