@@ -15,6 +15,29 @@
         </div>
         <c:choose>
             <c:when test="${not empty tourList}">
+                <div class="inner-info-2" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; padding-bottom: 14px; border-bottom: 1px solid #E2E8F0;">
+                    <div class="inner-sort" style="display: flex; align-items: center; gap: 16px;">
+                        <div class="inner-label" style="color: #64748B; font-weight: 600; font-size: 14px;">Sắp xếp:</div>
+                        <div class="inner-list" style="display: flex; align-items: center; gap: 16px;">
+                            <button type="button" button-sort="price-asc" style="outline: none; border: 0; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; color: ${param.sortKey == 'price' && param.sortValue == 'asc' ? '#2563EB' : '#64748B'};">
+                                Giá tăng dần
+                                <i class="fa-solid fa-square-caret-up"></i>
+                            </button>
+                            <button type="button" button-sort="price-desc" style="outline: none; border: 0; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; color: ${param.sortKey == 'price' && param.sortValue == 'desc' ? '#2563EB' : '#64748B'};">
+                                Giá giảm dần
+                                <i class="fa-solid fa-square-caret-down"></i>
+                            </button>
+                            <button type="button" button-sort="discount-desc" style="outline: none; border: 0; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; color: ${empty param.sortKey || (param.sortKey == 'discount' && param.sortValue == 'desc') ? '#2563EB' : '#64748B'};">
+                                Khuyến Mãi Hot
+                                <i class="fa-solid fa-tag"></i>
+                            </button>
+                            <button type="button" button-sort="view-desc" style="outline: none; border: 0; background: transparent; cursor: pointer; font-size: 13px; font-weight: 500; color: ${param.sortKey == 'view' ? '#2563EB' : '#64748B'};">
+                                Xem Nhiều
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <div class="inner-wrap">
                     <c:forEach var="item" items="${tourList}">
                         <c:set var="item" value="${item}" scope="request" />

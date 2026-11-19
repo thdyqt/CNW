@@ -5,6 +5,19 @@
 <jsp:include page="../layouts/header.jsp" />
 
 <div class="container">
+    <c:if test="${param.paymentSuccess == '1'}">
+        <div style="background: #ecfdf5; border: 1.5px solid #10b981; color: #047857; padding: 14px 20px; border-radius: 12px; margin-top: 25px; margin-bottom: 5px; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.12);">
+            <i class="fa-solid fa-circle-check" style="font-size: 22px; color: #10b981;"></i>
+            <span>Chúc mừng! Quý khách đã thanh toán đơn hàng thành công qua cổng thanh toán trực tuyến VNPay.</span>
+        </div>
+    </c:if>
+    <c:if test="${param.paymentFailed == '1'}">
+        <div style="background: #fef2f2; border: 1.5px solid #ef4444; color: #b91c1c; padding: 14px 20px; border-radius: 12px; margin-top: 25px; margin-bottom: 5px; font-weight: 600; font-size: 15px; display: flex; align-items: center; gap: 12px; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.12);">
+            <i class="fa-solid fa-circle-exclamation" style="font-size: 22px; color: #ef4444;"></i>
+            <span>Giao dịch VNPay chưa hoàn tất hoặc đã bị hủy. Đơn hàng của quý khách đã được ghi nhận ở trạng thái Chưa thanh toán.</span>
+        </div>
+    </c:if>
+
     <div class="section-11">
         <div class="inner-wrap">
             <h4>Cảm ơn quý khách đã đặt tour! Chúng tôi sẽ liên hệ lại với quý khách trong thời gian sớm nhất.</h4>

@@ -12,7 +12,7 @@
         <c:set var="favUrl" value="${pageContext.request.contextPath}${favUrl}" />
     </c:if>
     <link href="${favUrl}" rel="icon" type="image/x-icon">
-    <link href="${pageContext.request.contextPath}/public/assets/css/style.css?v=20261119_revamp03" rel="stylesheet">
+    <link href="${pageContext.request.contextPath}/public/assets/css/style.css?v=20261119_revamp04" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.css" rel="stylesheet">
@@ -39,6 +39,6 @@
     <script src="https://cdn.jsdelivr.net/npm/swiper@12/swiper-bundle.min.js"></script>
     <script referrerpolicy="no-referrer" crossorigin="anonymous" integrity="sha512-riFrNxs2bDKqO6KwSJysv07p/tbD+FzD1AOBt3inbAh2SxEY17tl5qObaUgn7Xjyzr1GIcvv6eUsZfxwS7Y8lA==" src="https://cdnjs.cloudflare.com/ajax/libs/viewerjs/1.13.0/viewer.min.js"></script>
     <script src="https://unpkg.com/just-validate@latest/dist/just-validate.production.min.js"></script>
-    <script src="${pageContext.request.contextPath}/public/assets/js/script.js?v=20261118_01"></script>
+    <script src="${pageContext.request.contextPath}/public/assets/js/script.js?v=20261119_revamp05"></script>
 </body>
 </html>

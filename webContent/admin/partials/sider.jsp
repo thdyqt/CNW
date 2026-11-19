@@ -55,6 +55,14 @@
                 </a>
             </li>
         </c:if>
+        <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('news-view')}">
+            <li>
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/news/list" class="${fn:contains(currentUri, 'news') ? 'active' : ''}">
+                    <i class="fa-solid fa-newspaper"></i>
+                    Quản lý bài viết
+                </a>
+            </li>
+        </c:if>
     </ul>
     <hr />
     <ul class="inner-menu">

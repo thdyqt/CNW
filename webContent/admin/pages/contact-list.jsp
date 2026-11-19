@@ -73,7 +73,25 @@
                                 <td class="inner-center">
                                     <input class="inner-check" type="checkbox" check-item="${item.id}" />
                                 </td>
-                                <td>${item.email}</td>
+                                <td>
+                                    <div style="font-weight: 600; color: #1e293b;">
+                                        <c:choose>
+                                            <c:when test="${not empty item.name}">${item.name}</c:when>
+                                            <c:otherwise>Đăng ký nhận ưu đãi</c:otherwise>
+                                        </c:choose>
+                                    </div>
+                                    <div style="font-size: 13px; color: #64748b; margin-top: 2px;">
+                                        <span><i class="fa-regular fa-envelope"></i> ${item.email}</span>
+                                        <c:if test="${not empty item.phone}">
+                                            <span style="margin-left: 10px;"><i class="fa-solid fa-phone" style="font-size: 11px;"></i> ${item.phone}</span>
+                                        </c:if>
+                                    </div>
+                                    <c:if test="${not empty item.subject or not empty item.message}">
+                                        <div style="font-size: 12px; color: #0369a1; margin-top: 5px; background: #f0f9ff; border: 1px solid #bae6fd; padding: 4px 10px; border-radius: 6px; max-width: 480px; line-height: 1.4;">
+                                            <c:if test="${not empty item.subject}"><span style="font-weight: 700;">[${item.subject}]</span> </c:if>${item.message}
+                                        </div>
+                                    </c:if>
+                                </td>
                                 <td>${item.createdAtFormatted}</td>
                                 <td class="inner-center">
                                     <div class="inner-buttons">

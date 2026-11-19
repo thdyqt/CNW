@@ -238,12 +238,37 @@ public class ContactDAO {
         return true;
     }
 
+    public boolean createContact(String name, String phone, String email, String subject, String message) {
+        String sql = "INSERT INTO contacts (name, phone, email, subject, message) VALUES (?, ?, ?, ?, ?)";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, name);
+                    ps.setString(2, phone);
+                    ps.setString(3, email);
+                    ps.setString(4, subject);
+                    ps.setString(5, message);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     private Contact mapResultSetToContact(ResultSet rs) throws Exception {
         Contact c = new Contact();
         c.setId(rs.getInt("id"));
         c.setEmail(rs.getString("email"));
         c.setDeleted(rs.getInt("deleted") == 1);
         c.setCreatedAt(rs.getTimestamp("created_at"));
+        try {
+            c.setName(rs.getString("name"));
+            c.setPhone(rs.getString("phone"));
+            c.setSubject(rs.getString("subject"));
+            c.setMessage(rs.getString("message"));
+        } catch (Exception ignored) {}
         try {
             c.setDeletedBy(rs.getString("deleted_by"));
             c.setDeletedAt(rs.getTimestamp("deleted_at"));

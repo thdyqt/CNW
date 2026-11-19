@@ -334,73 +334,99 @@
             <p class="section-desc">Cập nhật cẩm nang du lịch hữu ích, mẹo vặt và những câu chuyện hành trình truyền cảm hứng</p>
         </div>
         <div class="inner-wrap" data-aos-delay="150" data-aos-duration="800" data-aos="fade-up">
-            <div class="blog blog-item">
-                <a href="#">
-                    <div class="inner-image">
-                        <img alt="Blog-1" src="${pageContext.request.contextPath}/public/assets/images/Blog-1.jpg" />
-                    </div>
-                    <div class="inner-content">
-                        <div class="inner-tag"><i class="fa-solid fa-tag"></i> Nghỉ dưỡng</div>
-                        <div class="inner-date"><i class="fa-regular fa-calendar"></i> 28/07/2026</div>
-                        <div class="inner-title">Homestay “cổ tích” giữa Đà Lạt mộng mơ</div>
-                    </div>
-                </a>
-            </div>
-            <div class="blog blog-center">
-                <a href="#">
-                    <div class="inner-image">
-                        <img alt="Blog-2" src="${pageContext.request.contextPath}/public/assets/images/Blog-2.jpg" />
-                    </div>
-                    <div class="inner-content">
-                        <div class="inner-badge-featured"><i class="fa-solid fa-star"></i> Tiêu điểm tuần</div>
-                        <div class="inner-date"><i class="fa-regular fa-calendar"></i> 29/07/2026</div>
-                        <div class="inner-title">Top 5 điểm check in độc đáo tại Singapore không thể bỏ lỡ</div>
-                        <div class="inner-desc">
-                            Nếu bạn nghĩ du lịch Singapore rất nhàm chán vì chỉ mãi quanh quẩn trong những khối bê tông vô cảm thì bạn “chắc chưa?”. Tuy đảo quốc Sư Tử không phải là một quốc gia rộng lớn nhưng các địa điểm du lịch tại Singapore chưa từng đánh mất sức hút đối với cộng đồng xê dịch quốc tế.
+            <!-- Bài viết 1: góc trên bên trái -->
+            <c:if test="${not empty latestNews and latestNews.size() > 0}">
+                <c:set var="item" value="${latestNews[0]}" />
+                <div class="blog blog-item">
+                    <a href="${pageContext.request.contextPath}/news/detail/${item.slug}">
+                        <div class="inner-image">
+                            <c:set var="cardImg" value="${item.avatar}" />
+                            <c:if test="${not empty cardImg and not cardImg.startsWith('http')}">
+                                <c:set var="cardImg" value="${pageContext.request.contextPath}${cardImg}" />
+                            </c:if>
+                            <img alt="${item.title}" src="${cardImg}" onerror="this.src='${pageContext.request.contextPath}/public/assets/images/Blog-1.jpg'" />
                         </div>
-                        <div class="inner-read-more">
-                            <span>Khám phá ngay</span>
-                            <i class="fa-solid fa-arrow-right"></i>
+                        <div class="inner-content">
+                            <div class="inner-tag">
+                                <c:choose>
+                                    <c:when test="${item.category == 'Nghỉ dưỡng'}"><i class="fa-solid fa-hotel"></i></c:when>
+                                    <c:when test="${item.category == 'Ẩm thực'}"><i class="fa-solid fa-utensils"></i></c:when>
+                                    <c:when test="${item.category == 'Khám phá'}"><i class="fa-solid fa-compass"></i></c:when>
+                                    <c:when test="${item.category == 'Trekking'}"><i class="fa-solid fa-mountain"></i></c:when>
+                                    <c:when test="${item.category == 'Điểm đến hot'}"><i class="fa-solid fa-fire"></i></c:when>
+                                    <c:otherwise><i class="fa-solid fa-tag"></i></c:otherwise>
+                                </c:choose>
+                                ${item.category}
+                            </div>
+                            <div class="inner-date"><i class="fa-regular fa-calendar"></i> ${item.createdAtFormatted}</div>
+                            <div class="inner-title">${item.title}</div>
                         </div>
+                    </a>
+                </div>
+            </c:if>
+
+            <!-- Bài viết Tiêu điểm: trung tâm (chiếm 2 cột x 2 hàng) -->
+            <c:if test="${not empty featuredNews}">
+                <div class="blog blog-center">
+                    <a href="${pageContext.request.contextPath}/news/detail/${featuredNews.slug}">
+                        <div class="inner-image">
+                            <c:set var="featImg" value="${featuredNews.avatar}" />
+                            <c:if test="${not empty featImg and not featImg.startsWith('http')}">
+                                <c:set var="featImg" value="${pageContext.request.contextPath}${featImg}" />
+                            </c:if>
+                            <img alt="${featuredNews.title}" src="${featImg}" onerror="this.src='${pageContext.request.contextPath}/public/assets/images/Blog-2.jpg'" />
+                        </div>
+                        <div class="inner-content">
+                            <div class="inner-badge-featured"><i class="fa-solid fa-star"></i> Tiêu điểm</div>
+                            <div class="inner-date"><i class="fa-regular fa-calendar"></i> ${featuredNews.createdAtFormatted}</div>
+                            <div class="inner-title">${featuredNews.title}</div>
+                            <div class="inner-desc">${featuredNews.description}</div>
+                            <div class="inner-read-more">
+                                <span>Khám phá ngay</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+            </c:if>
+
+            <!-- Các bài viết còn lại (2, 3, 4) -->
+            <c:if test="${not empty latestNews and latestNews.size() > 1}">
+                <c:forEach var="item" items="${latestNews}" begin="1" end="3">
+                    <div class="blog blog-item">
+                        <a href="${pageContext.request.contextPath}/news/detail/${item.slug}">
+                            <div class="inner-image">
+                                <c:set var="cardImg" value="${item.avatar}" />
+                                <c:if test="${not empty cardImg and not cardImg.startsWith('http')}">
+                                    <c:set var="cardImg" value="${pageContext.request.contextPath}${cardImg}" />
+                                </c:if>
+                                <img alt="${item.title}" src="${cardImg}" onerror="this.src='${pageContext.request.contextPath}/public/assets/images/Blog-1.jpg'" />
+                            </div>
+                            <div class="inner-content">
+                                <div class="inner-tag">
+                                    <c:choose>
+                                        <c:when test="${item.category == 'Nghỉ dưỡng'}"><i class="fa-solid fa-hotel"></i></c:when>
+                                        <c:when test="${item.category == 'Ẩm thực'}"><i class="fa-solid fa-utensils"></i></c:when>
+                                        <c:when test="${item.category == 'Khám phá'}"><i class="fa-solid fa-compass"></i></c:when>
+                                        <c:when test="${item.category == 'Trekking'}"><i class="fa-solid fa-mountain"></i></c:when>
+                                        <c:when test="${item.category == 'Điểm đến hot'}"><i class="fa-solid fa-fire"></i></c:when>
+                                        <c:otherwise><i class="fa-solid fa-tag"></i></c:otherwise>
+                                    </c:choose>
+                                    ${item.category}
+                                </div>
+                                <div class="inner-date"><i class="fa-regular fa-calendar"></i> ${item.createdAtFormatted}</div>
+                                <div class="inner-title">${item.title}</div>
+                            </div>
+                        </a>
                     </div>
-                </a>
-            </div>
-            <div class="blog blog-item">
-                <a href="#">
-                    <div class="inner-image">
-                        <img alt="Blog-3" src="${pageContext.request.contextPath}/public/assets/images/Blog-3.jpg" />
-                    </div>
-                    <div class="inner-content">
-                        <div class="inner-tag"><i class="fa-solid fa-utensils"></i> Ẩm thực</div>
-                        <div class="inner-date"><i class="fa-regular fa-calendar"></i> 27/07/2026</div>
-                        <div class="inner-title">Đặc sản không thể bỏ qua khi đến với Đà Nẵng – Hội An</div>
-                    </div>
-                </a>
-            </div>
-            <div class="blog blog-item">
-                <a href="#">
-                    <div class="inner-image">
-                        <img alt="Blog-4" src="${pageContext.request.contextPath}/public/assets/images/Blog-4.jpg" />
-                    </div>
-                    <div class="inner-content">
-                        <div class="inner-tag"><i class="fa-solid fa-compass"></i> Khám phá</div>
-                        <div class="inner-date"><i class="fa-regular fa-calendar"></i> 26/07/2026</div>
-                        <div class="inner-title">Đảo Phú Quý Bình Thuận hot trend năm 2026</div>
-                    </div>
-                </a>
-            </div>
-            <div class="blog blog-item">
-                <a href="#">
-                    <div class="inner-image">
-                        <img alt="Blog-5" src="${pageContext.request.contextPath}/public/assets/images/Blog-5.jpg" />
-                    </div>
-                    <div class="inner-content">
-                        <div class="inner-tag"><i class="fa-solid fa-mountain"></i> Trekking</div>
-                        <div class="inner-date"><i class="fa-regular fa-calendar"></i> 21/07/2026</div>
-                        <div class="inner-title">Trekking cắm trại tại Đà Lạt - Cảm nhận từng bước chân</div>
-                    </div>
-                </a>
-            </div>
+                </c:forEach>
+            </c:if>
+        </div>
+        <div class="text-center" style="margin-top: 40px;" data-aos="fade-up" data-aos-duration="600">
+            <a href="${pageContext.request.contextPath}/news" class="btn-view-all-news" style="display: inline-flex; align-items: center; gap: 10px; background: #ffffff; color: var(--blue, #2563eb); border: 1.5px solid var(--blue, #2563eb); padding: 12px 28px; border-radius: 30px; font-weight: 700; font-size: 14px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(37,99,235,0.08);">
+                <span>Xem Tất Cả Tin Tức & Cẩm Nang</span>
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
         </div>
     </div>
 </div>

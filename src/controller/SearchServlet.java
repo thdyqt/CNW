@@ -28,14 +28,25 @@ public class SearchServlet extends HttpServlet {
         Integer stockBaby = null;
 
         try {
-            if (req.getParameter("stockAdult") != null) stockAdult = Integer.parseInt(req.getParameter("stockAdult"));
-            if (req.getParameter("stockChildren") != null) stockChildren = Integer.parseInt(req.getParameter("stockChildren"));
-            if (req.getParameter("stockBaby") != null) stockBaby = Integer.parseInt(req.getParameter("stockBaby"));
+            if (req.getParameter("stockAdult") != null && !req.getParameter("stockAdult").trim().isEmpty()) {
+                int v = Integer.parseInt(req.getParameter("stockAdult").trim());
+                if (v > 0) stockAdult = v;
+            }
+            if (req.getParameter("stockChildren") != null && !req.getParameter("stockChildren").trim().isEmpty()) {
+                int v = Integer.parseInt(req.getParameter("stockChildren").trim());
+                if (v > 0) stockChildren = v;
+            }
+            if (req.getParameter("stockBaby") != null && !req.getParameter("stockBaby").trim().isEmpty()) {
+                int v = Integer.parseInt(req.getParameter("stockBaby").trim());
+                if (v > 0) stockBaby = v;
+            }
         } catch (Exception ignored) {}
 
         String price = req.getParameter("price");
+        String sortKey = req.getParameter("sortKey");
+        String sortValue = req.getParameter("sortValue");
 
-        List<Tour> tourList = tourDAO.searchTours(locationFrom, locationTo, departureDate, stockAdult, stockChildren, stockBaby, price);
+        List<Tour> tourList = tourDAO.searchTours(locationFrom, locationTo, departureDate, stockAdult, stockChildren, stockBaby, price, sortKey, sortValue);
 
         req.setAttribute("pageTitle", "Kết quả tìm kiếm");
         req.setAttribute("tourList", tourList);

@@ -177,24 +177,44 @@ public class TourDAO {
     }
 
     public List<Tour> getToursByCategories(List<Integer> categoryIds, int limit) {
+        return getToursByCategoriesWithFilter(categoryIds, null, null, null, null, null, null, null, null, null, limit);
+    }
+
+    public List<Tour> getToursByCategoriesWithFilter(
+            List<Integer> categoryIds,
+            String locationFrom,
+            String locationTo,
+            String departureDate,
+            Integer stockAdult,
+            Integer stockChildren,
+            Integer stockBaby,
+            String priceRange,
+            String sortKey,
+            String sortValue,
+            int limit) {
         List<Tour> list = new ArrayList<>();
         if (categoryIds == null || categoryIds.isEmpty()) return list;
 
         Connection conn = DBContext.getConnection();
         if (conn != null) {
             try {
+                StringBuilder sql = new StringBuilder("SELECT * FROM tours WHERE deleted = 0 AND status = 'active'");
+                List<Object> params = new ArrayList<>();
+
                 StringBuilder inClause = new StringBuilder();
                 for (int i = 0; i < categoryIds.size(); i++) {
                     inClause.append("?");
                     if (i < categoryIds.size() - 1) inClause.append(",");
+                    params.add(categoryIds.get(i));
                 }
-                String sql = "SELECT * FROM tours WHERE deleted = 0 AND status = 'active' AND category_id IN (" + inClause + ") ORDER BY position DESC LIMIT ?";
-                PreparedStatement ps = conn.prepareStatement(sql);
-                int idx = 1;
-                for (int catId : categoryIds) {
-                    ps.setInt(idx++, catId);
+                sql.append(" AND category_id IN (").append(inClause).append(")");
+
+                applyFiltersAndSorting(sql, params, locationFrom, locationTo, departureDate, stockAdult, stockChildren, stockBaby, priceRange, sortKey, sortValue, limit);
+
+                PreparedStatement ps = conn.prepareStatement(sql.toString());
+                for (int i = 0; i < params.size(); i++) {
+                    ps.setObject(i + 1, params.get(i));
                 }
-                ps.setInt(idx, limit);
                 ResultSet rs = ps.executeQuery();
                 while (rs.next()) {
                     list.add(mapResultSetToTour(rs));
@@ -204,19 +224,112 @@ public class TourDAO {
                 e.printStackTrace();
             }
         }
-        if (list.isEmpty()) {
-            for (Tour t : getDefaultMockTours()) {
-                if (categoryIds.contains(t.getCategoryId())) {
-                    list.add(t);
-                    if (list.size() >= limit) break;
-                }
-            }
-            if (list.isEmpty()) {
-                list = getDefaultMockTours();
-                if (list.size() > limit) list = list.subList(0, limit);
+        return list;
+    }
+
+    private void applyFiltersAndSorting(
+            StringBuilder sql,
+            List<Object> params,
+            String locationFrom,
+            String locationTo,
+            String departureDate,
+            Integer stockAdult,
+            Integer stockChildren,
+            Integer stockBaby,
+            String priceRange,
+            String sortKey,
+            String sortValue,
+            int limit) {
+
+        if (locationFrom != null && !locationFrom.trim().isEmpty()) {
+            String loc = locationFrom.trim();
+            if (loc.matches("\\d+")) {
+                sql.append(" AND (FIND_IN_SET(?, locations) > 0)");
+                params.add(loc);
+            } else {
+                sql.append(" AND (locations LIKE ? OR name LIKE ? OR slug LIKE ?)");
+                params.add("%" + loc + "%");
+                params.add("%" + loc + "%");
+                params.add("%" + loc + "%");
             }
         }
-        return list;
+
+        if (locationTo != null && !locationTo.trim().isEmpty()) {
+            String raw = locationTo.trim();
+            String normalized = raw.replace("–", "-").replace("—", "-");
+            String[] tokens = normalized.split("[-/,]+");
+
+            CityDAO cityDAO = new CityDAO();
+            City c = cityDAO.getCityByName(raw);
+
+            sql.append(" AND (");
+            sql.append("(name LIKE ? OR slug LIKE ?)");
+            params.add("%" + raw + "%");
+            params.add("%" + raw + "%");
+
+            if (c != null) {
+                sql.append(" OR FIND_IN_SET(?, locations) > 0");
+                params.add(String.valueOf(c.getId()));
+            }
+
+            for (String tok : tokens) {
+                String t = tok.trim();
+                if (!t.isEmpty() && !t.equalsIgnoreCase(raw)) {
+                    sql.append(" OR (name LIKE ? OR slug LIKE ?)");
+                    params.add("%" + t + "%");
+                    params.add("%" + t + "%");
+                }
+            }
+            sql.append(")");
+        }
+
+        if (departureDate != null && !departureDate.trim().isEmpty()) {
+            sql.append(" AND departure_date >= ?");
+            params.add(departureDate.trim());
+        }
+
+        if (stockAdult != null && stockAdult > 0) {
+            sql.append(" AND stock_adult >= ?");
+            params.add(stockAdult);
+        }
+        if (stockChildren != null && stockChildren > 0) {
+            sql.append(" AND stock_children >= ?");
+            params.add(stockChildren);
+        }
+        if (stockBaby != null && stockBaby > 0) {
+            sql.append(" AND stock_baby >= ?");
+            params.add(stockBaby);
+        }
+
+        if (priceRange != null && priceRange.contains("-")) {
+            String[] parts = priceRange.split("-");
+            try {
+                double min = Double.parseDouble(parts[0]);
+                double max = Double.parseDouble(parts[1]);
+                sql.append(" AND price_new_adult >= ? AND price_new_adult <= ?");
+                params.add(min);
+                params.add(max);
+            } catch (Exception ignored) {}
+        }
+
+        if ("price".equalsIgnoreCase(sortKey)) {
+            if ("asc".equalsIgnoreCase(sortValue)) {
+                sql.append(" ORDER BY price_new_adult ASC");
+            } else {
+                sql.append(" ORDER BY price_new_adult DESC");
+            }
+        } else if ("discount".equalsIgnoreCase(sortKey)) {
+            sql.append(" ORDER BY CASE WHEN price_adult > 0 THEN ((price_adult - price_new_adult) / price_adult) ELSE 0 END DESC");
+        } else if ("view".equalsIgnoreCase(sortKey)) {
+            sql.append(" ORDER BY position DESC, id DESC");
+        } else {
+            sql.append(" ORDER BY CASE WHEN price_adult > 0 THEN ((price_adult - price_new_adult) / price_adult) ELSE 0 END DESC, position DESC");
+        }
+
+        if (limit > 0) {
+            sql.append(" LIMIT ?");
+            params.add(limit);
+        }
     }
 
     public Tour getTourBySlug(String slug) {
@@ -269,6 +382,10 @@ public class TourDAO {
     }
 
     public List<Tour> searchTours(String locationFrom, String locationTo, String departureDate, Integer stockAdult, Integer stockChildren, Integer stockBaby, String priceRange) {
+        return searchTours(locationFrom, locationTo, departureDate, stockAdult, stockChildren, stockBaby, priceRange, null, null);
+    }
+
+    public List<Tour> searchTours(String locationFrom, String locationTo, String departureDate, Integer stockAdult, Integer stockChildren, Integer stockBaby, String priceRange, String sortKey, String sortValue) {
         List<Tour> list = new ArrayList<>();
         Connection conn = DBContext.getConnection();
         if (conn != null) {
@@ -276,58 +393,8 @@ public class TourDAO {
                 StringBuilder sql = new StringBuilder("SELECT * FROM tours WHERE deleted = 0 AND status = 'active'");
                 List<Object> params = new ArrayList<>();
 
-                if (locationTo != null && !locationTo.trim().isEmpty()) {
-                    String raw = locationTo.trim();
-                    String normalized = raw.replace("–", "-").replace("—", "-");
-                    String[] tokens = normalized.split("[-/,]+");
+                applyFiltersAndSorting(sql, params, locationFrom, locationTo, departureDate, stockAdult, stockChildren, stockBaby, priceRange, sortKey, sortValue, 100);
 
-                    sql.append(" AND (");
-                    sql.append("(name LIKE ? OR slug LIKE ?)");
-                    params.add("%" + raw + "%");
-                    params.add("%" + raw + "%");
-
-                    for (String tok : tokens) {
-                        String t = tok.trim();
-                        if (!t.isEmpty() && !t.equalsIgnoreCase(raw)) {
-                            sql.append(" OR (name LIKE ? OR slug LIKE ?)");
-                            params.add("%" + t + "%");
-                            params.add("%" + t + "%");
-                        }
-                    }
-                    sql.append(")");
-                }
-                if (locationFrom != null && !locationFrom.trim().isEmpty()) {
-                    sql.append(" AND locations LIKE ?");
-                    params.add("%" + locationFrom.trim() + "%");
-                }
-                if (departureDate != null && !departureDate.trim().isEmpty()) {
-                    sql.append(" AND departure_date >= ?");
-                    params.add(departureDate.trim());
-                }
-                if (stockAdult != null && stockAdult > 0) {
-                    sql.append(" AND stock_adult >= ?");
-                    params.add(stockAdult);
-                }
-                if (stockChildren != null && stockChildren > 0) {
-                    sql.append(" AND stock_children >= ?");
-                    params.add(stockChildren);
-                }
-                if (stockBaby != null && stockBaby > 0) {
-                    sql.append(" AND stock_baby >= ?");
-                    params.add(stockBaby);
-                }
-                if (priceRange != null && priceRange.contains("-")) {
-                    String[] parts = priceRange.split("-");
-                    try {
-                        double min = Double.parseDouble(parts[0]);
-                        double max = Double.parseDouble(parts[1]);
-                        sql.append(" AND price_new_adult >= ? AND price_new_adult <= ?");
-                        params.add(min);
-                        params.add(max);
-                    } catch (Exception ignored) {}
-                }
-
-                sql.append(" ORDER BY position DESC");
                 PreparedStatement ps = conn.prepareStatement(sql.toString());
                 for (int i = 0; i < params.size(); i++) {
                     ps.setObject(i + 1, params.get(i));

@@ -197,6 +197,13 @@ public class CommonDataFilter implements Filter {
             if (uri.contains("/trash")) return "contact-trash";
             return "contact-view";
         }
+        if (uri.contains("/admin/news")) {
+            if (uri.contains("/create")) return "news-create";
+            if (uri.contains("/edit")) return "news-edit";
+            if (uri.contains("/delete") || uri.contains("/change-multi") || uri.contains("/undo") || uri.contains("/destroy")) return "news-delete";
+            if (uri.contains("/trash")) return "news-trash";
+            return "news-view";
+        }
         if (uri.contains("/admin/setting")) {
             if (uri.contains("/role")) {
                 if (uri.contains("/create")) return "role-create";

@@ -76,6 +76,9 @@
         <servlet-name>OrderServlet</servlet-name>
         <url-pattern>/order/create</url-pattern>
         <url-pattern>/order/success</url-pattern>
+        <url-pattern>/order/payment-vnpay</url-pattern>
+        <url-pattern>/order/payment-vnpay-result</url-pattern>
+        <url-pattern>/order/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -84,7 +87,20 @@
     </servlet>
     <servlet-mapping>
         <servlet-name>ContactServlet</servlet-name>
+        <url-pattern>/contact</url-pattern>
         <url-pattern>/contact/create</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>NewsServlet</servlet-name>
+        <servlet-class>controller.NewsServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>NewsServlet</servlet-name>
+        <url-pattern>/news</url-pattern>
+        <url-pattern>/news/*</url-pattern>
+        <url-pattern>/tin-tuc</url-pattern>
+        <url-pattern>/tin-tuc/*</url-pattern>
     </servlet-mapping>
 
     <!-- Admin Servlets -->
@@ -196,6 +212,21 @@
         <servlet-name>AdminAccountServlet</servlet-name>
         <url-pattern>/admin/login</url-pattern>
         <url-pattern>/admin/account/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminNewsServlet</servlet-name>
+        <servlet-class>controller.admin.AdminNewsServlet</servlet-class>
+        <multipart-config>
+            <max-file-size>20971520</max-file-size>
+            <max-request-size>41943040</max-request-size>
+            <file-size-threshold>0</file-size-threshold>
+        </multipart-config>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminNewsServlet</servlet-name>
+        <url-pattern>/admin/news/*</url-pattern>
+        <url-pattern>/admin/news</url-pattern>
     </servlet-mapping>
 
 </web-app>

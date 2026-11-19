@@ -3,74 +3,220 @@ package model.DAO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import model.BEAN.*;
-import model.BEAN.*;
-import model.BEAN.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class OrderDAO {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public boolean createOrder(Order order) {
-        try (Connection conn = DBContext.getConnection()) {
-            if (conn != null) {
-                String sql = "INSERT INTO orders (code, full_name, phone, note, sub_total, total, payment_method, payment_status, status, items, created_at, updated_at, deleted) "
-                           + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)";
-                try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-                    ps.setString(1, order.getCode());
-                    ps.setString(2, order.getFullName());
-                    ps.setString(3, order.getPhone());
-                    ps.setString(4, order.getNote());
-                    ps.setDouble(5, order.getSubTotal());
-                    ps.setDouble(6, order.getTotal());
-                    ps.setString(7, order.getPaymentMethod() != null ? order.getPaymentMethod() : "money");
-                    ps.setString(8, order.getPaymentStatus() != null ? order.getPaymentStatus() : "unpaid");
-                    ps.setString(9, order.getStatus() != null ? order.getStatus() : "initial");
+    public OrderResult createOrderWithStockCheck(Order order) {
+        if (order == null || order.getItems() == null || order.getItems().isEmpty()) {
+            return new OrderResult(false, "Đơn hàng chưa có sản phẩm nào!");
+        }
 
-                    String itemsJson = objectMapper.writeValueAsString(order.getItems());
-                    ps.setString(10, itemsJson);
+        // 1. Gom nhóm số lượng chỗ đặt theo từng tourId
+        Map<Integer, int[]> demandMap = new LinkedHashMap<>();
+        for (OrderItem item : order.getItems()) {
+            if (item == null) continue;
+            int tid = item.getTourId();
+            int[] d = demandMap.computeIfAbsent(tid, k -> new int[3]);
+            d[0] += Math.max(0, item.getQuantityAdult());
+            d[1] += Math.max(0, item.getQuantityChildren());
+            d[2] += Math.max(0, item.getQuantityBaby());
+        }
 
-                    int affected = ps.executeUpdate();
-                    if (affected > 0) {
-                        try (ResultSet rs = ps.getGeneratedKeys()) {
-                            if (rs.next()) {
-                                int orderId = rs.getInt(1);
-                                order.setId(orderId);
+        int totalSeatsRequested = 0;
+        for (int[] d : demandMap.values()) {
+            totalSeatsRequested += d[0] + d[1] + d[2];
+        }
+        if (totalSeatsRequested <= 0) {
+            return new OrderResult(false, "Vui lòng chọn số lượng hành khách ít nhất 1 người!");
+        }
 
-                                String itemSql = "INSERT INTO order_items (order_id, tour_id, quantity_adult, quantity_children, quantity_baby, price_new_adult, price_new_children, price_new_baby, location_from) "
-                                               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                                try (PreparedStatement itemPs = conn.prepareStatement(itemSql)) {
-                                    for (OrderItem item : order.getItems()) {
-                                        itemPs.setInt(1, orderId);
-                                        itemPs.setInt(2, item.getTourId());
-                                        itemPs.setInt(3, item.getQuantityAdult());
-                                        itemPs.setInt(4, item.getQuantityChildren());
-                                        itemPs.setInt(5, item.getQuantityBaby());
-                                        itemPs.setDouble(6, item.getPriceNewAdult());
-                                        itemPs.setDouble(7, item.getPriceNewChildren());
-                                        itemPs.setDouble(8, item.getPriceNewBaby());
-                                        itemPs.setInt(9, item.getLocationFrom());
-                                        itemPs.addBatch();
-                                    }
-                                    itemPs.executeBatch();
-                                }
-                            }
+        // 2. Sắp xếp danh sách tourId tăng dần để triệt tiêu hoàn toàn khả năng Deadlock giữa các giao dịch đồng thời
+        List<Integer> sortedTourIds = new ArrayList<>(demandMap.keySet());
+        Collections.sort(sortedTourIds);
+
+        Connection conn = null;
+        try {
+            conn = DBContext.getConnection();
+            if (conn == null) {
+                return new OrderResult(false, "Không thể kết nối cơ sở dữ liệu!");
+            }
+
+            // Bắt đầu Transaction
+            conn.setAutoCommit(false);
+
+            // 3. Khóa dòng (Pessimistic Locking với SELECT ... FOR UPDATE) và kiểm tra số lượng chỗ còn lại
+            String lockSql = "SELECT id, name, status, deleted, stock_adult, stock_children, stock_baby "
+                           + "FROM tours WHERE id = ? FOR UPDATE";
+            try (PreparedStatement lockPs = conn.prepareStatement(lockSql)) {
+                for (int tourId : sortedTourIds) {
+                    int[] req = demandMap.get(tourId);
+                    int reqAdult = req[0];
+                    int reqChildren = req[1];
+                    int reqBaby = req[2];
+
+                    lockPs.setInt(1, tourId);
+                    try (ResultSet rs = lockPs.executeQuery()) {
+                        if (!rs.next()) {
+                            conn.rollback();
+                            return new OrderResult(false, "Tour (ID: " + tourId + ") không tồn tại!");
                         }
-                        return true;
+
+                        int deleted = rs.getInt("deleted");
+                        String status = rs.getString("status");
+                        String tourName = rs.getString("name");
+
+                        if (deleted == 1 || !"active".equalsIgnoreCase(status)) {
+                            conn.rollback();
+                            return new OrderResult(false, "Tour '" + tourName + "' hiện đã tạm ngừng nhận khách!");
+                        }
+
+                        int stockAdult = rs.getInt("stock_adult");
+                        int stockChildren = rs.getInt("stock_children");
+                        int stockBaby = rs.getInt("stock_baby");
+
+                        if (reqAdult > 0 && stockAdult < reqAdult) {
+                            conn.rollback();
+                            return new OrderResult(false, "Rất tiếc, tour '" + tourName + "' chỉ còn " + stockAdult + " chỗ người lớn (bạn đặt " + reqAdult + " chỗ). Vui lòng điều chỉnh lại số lượng!");
+                        }
+
+                        if (reqChildren > 0 && stockChildren < reqChildren) {
+                            conn.rollback();
+                            return new OrderResult(false, "Rất tiếc, tour '" + tourName + "' chỉ còn " + stockChildren + " chỗ trẻ em (bạn đặt " + reqChildren + " chỗ). Vui lòng điều chỉnh lại số lượng!");
+                        }
+
+                        if (reqBaby > 0 && stockBaby < reqBaby) {
+                            conn.rollback();
+                            return new OrderResult(false, "Rất tiếc, tour '" + tourName + "' chỉ còn " + stockBaby + " chỗ em bé (bạn đặt " + reqBaby + " chỗ). Vui lòng điều chỉnh lại số lượng!");
+                        }
                     }
                 }
             }
+
+            // 4. Giảm số lượng chỗ của tour ngay trong cùng Transaction
+            String updateStockSql = "UPDATE tours "
+                                  + "SET stock_adult = stock_adult - ?, "
+                                  + "    stock_children = stock_children - ?, "
+                                  + "    stock_baby = stock_baby - ?, "
+                                  + "    updated_at = NOW() "
+                                  + "WHERE id = ? AND stock_adult >= ? AND stock_children >= ? AND stock_baby >= ?";
+            try (PreparedStatement updatePs = conn.prepareStatement(updateStockSql)) {
+                for (int tourId : sortedTourIds) {
+                    int[] req = demandMap.get(tourId);
+                    int reqAdult = req[0];
+                    int reqChildren = req[1];
+                    int reqBaby = req[2];
+
+                    updatePs.setInt(1, reqAdult);
+                    updatePs.setInt(2, reqChildren);
+                    updatePs.setInt(3, reqBaby);
+                    updatePs.setInt(4, tourId);
+                    updatePs.setInt(5, reqAdult);
+                    updatePs.setInt(6, reqChildren);
+                    updatePs.setInt(7, reqBaby);
+
+                    int rows = updatePs.executeUpdate();
+                    if (rows == 0) {
+                        conn.rollback();
+                        return new OrderResult(false, "Số lượng chỗ trống vừa được cập nhật bởi lượt đặt khác. Vui lòng thử lại!");
+                    }
+                }
+            }
+
+            // 5. Thêm bản ghi vào bảng orders
+            String sql = "INSERT INTO orders (code, full_name, phone, note, sub_total, total, payment_method, payment_status, status, items, created_at, updated_at, deleted) "
+                       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)";
+            int orderId = 0;
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, order.getCode());
+                ps.setString(2, order.getFullName());
+                ps.setString(3, order.getPhone());
+                ps.setString(4, order.getNote());
+                ps.setDouble(5, order.getSubTotal());
+                ps.setDouble(6, order.getTotal());
+                ps.setString(7, order.getPaymentMethod() != null ? order.getPaymentMethod() : "money");
+                ps.setString(8, order.getPaymentStatus() != null ? order.getPaymentStatus() : "unpaid");
+                ps.setString(9, order.getStatus() != null ? order.getStatus() : "initial");
+
+                String itemsJson = objectMapper.writeValueAsString(order.getItems());
+                ps.setString(10, itemsJson);
+
+                int affected = ps.executeUpdate();
+                if (affected <= 0) {
+                    conn.rollback();
+                    return new OrderResult(false, "Không thể lưu thông tin đơn hàng!");
+                }
+
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) {
+                        orderId = rs.getInt(1);
+                        order.setId(orderId);
+                    } else {
+                        conn.rollback();
+                        return new OrderResult(false, "Không lấy được mã ID đơn hàng vừa tạo!");
+                    }
+                }
+            }
+
+            // 6. Thêm bản ghi vào bảng order_items
+            String itemSql = "INSERT INTO order_items (order_id, tour_id, quantity_adult, quantity_children, quantity_baby, price_new_adult, price_new_children, price_new_baby, location_from) "
+                           + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement itemPs = conn.prepareStatement(itemSql)) {
+                for (OrderItem item : order.getItems()) {
+                    itemPs.setInt(1, orderId);
+                    itemPs.setInt(2, item.getTourId());
+                    itemPs.setInt(3, item.getQuantityAdult());
+                    itemPs.setInt(4, item.getQuantityChildren());
+                    itemPs.setInt(5, item.getQuantityBaby());
+                    itemPs.setDouble(6, item.getPriceNewAdult());
+                    itemPs.setDouble(7, item.getPriceNewChildren());
+                    itemPs.setDouble(8, item.getPriceNewBaby());
+                    itemPs.setInt(9, item.getLocationFrom());
+                    itemPs.addBatch();
+                }
+                itemPs.executeBatch();
+            }
+
+            // 7. Commit toàn bộ Transaction thành công
+            conn.commit();
+            return new OrderResult(true, "Đặt hàng thành công!", order.getCode());
+
         } catch (Exception e) {
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (Exception rollbackEx) {
+                    rollbackEx.printStackTrace();
+                }
+            }
             e.printStackTrace();
+            return new OrderResult(false, "Có lỗi xảy ra trong quá trình đặt tour: " + e.getMessage());
+        } finally {
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (Exception closeEx) {
+                    closeEx.printStackTrace();
+                }
+            }
         }
-        return false;
+    }
+
+    public boolean createOrder(Order order) {
+        OrderResult res = createOrderWithStockCheck(order);
+        return res != null && res.isSuccess();
     }
 
     public List<Order> getOrders(String status, String startDate, String endDate, String paymentMethod, String paymentStatus, String keyword, int page, int limit) {
@@ -233,6 +379,26 @@ public class OrderDAO {
         return null;
     }
 
+    public Order getOrderByCode(String code) {
+        return getOrderByCodeAndPhone(code, null);
+    }
+
+    public boolean updatePaymentStatus(String code, String paymentStatus) {
+        String sql = "UPDATE orders SET payment_status = ?, updated_at = NOW() WHERE code = ? AND deleted = 0";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, paymentStatus);
+                    ps.setString(2, code);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public boolean updateOrder(Order order) {
         String sql = "UPDATE orders SET full_name = ?, phone = ?, note = ?, payment_method = ?, payment_status = ?, status = ?, updated_at = NOW() WHERE id = ?";
         try (Connection conn = DBContext.getConnection()) {
@@ -255,19 +421,72 @@ public class OrderDAO {
     }
 
     public boolean updateStatus(int id, String status) {
-        String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?";
+        String queryCurrent = "SELECT status FROM orders WHERE id = ? AND deleted = 0";
         try (Connection conn = DBContext.getConnection()) {
             if (conn != null) {
-                try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, status);
-                    ps.setInt(2, id);
-                    return ps.executeUpdate() > 0;
+                conn.setAutoCommit(false);
+                try {
+                    String oldStatus = null;
+                    try (PreparedStatement ps = conn.prepareStatement(queryCurrent)) {
+                        ps.setInt(1, id);
+                        try (ResultSet rs = ps.executeQuery()) {
+                            if (rs.next()) {
+                                oldStatus = rs.getString("status");
+                            }
+                        }
+                    }
+
+                    if (oldStatus != null) {
+                        // Nếu chuyển sang trạng thái hủy (cancel), hoàn lại số lượng chỗ cho tour
+                        if ("cancel".equalsIgnoreCase(status) && !"cancel".equalsIgnoreCase(oldStatus)) {
+                            restoreOrderStock(id, conn);
+                        }
+                    }
+
+                    String sql = "UPDATE orders SET status = ?, updated_at = NOW() WHERE id = ?";
+                    try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                        ps.setString(1, status);
+                        ps.setInt(2, id);
+                        ps.executeUpdate();
+                    }
+
+                    conn.commit();
+                    return true;
+                } catch (Exception e) {
+                    conn.rollback();
+                    e.printStackTrace();
+                } finally {
+                    conn.setAutoCommit(true);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    private void restoreOrderStock(int orderId, Connection conn) throws Exception {
+        String itemSql = "SELECT tour_id, quantity_adult, quantity_children, quantity_baby FROM order_items WHERE order_id = ?";
+        String updateTourSql = "UPDATE tours SET stock_adult = stock_adult + ?, stock_children = stock_children + ?, stock_baby = stock_baby + ?, updated_at = NOW() WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(itemSql);
+             PreparedStatement updatePs = conn.prepareStatement(updateTourSql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int tourId = rs.getInt("tour_id");
+                    int qAdult = rs.getInt("quantity_adult");
+                    int qChildren = rs.getInt("quantity_children");
+                    int qBaby = rs.getInt("quantity_baby");
+
+                    updatePs.setInt(1, qAdult);
+                    updatePs.setInt(2, qChildren);
+                    updatePs.setInt(3, qBaby);
+                    updatePs.setInt(4, tourId);
+                    updatePs.addBatch();
+                }
+                updatePs.executeBatch();
+            }
+        }
     }
 
     public boolean deleteOrder(int id, String deletedBy) {

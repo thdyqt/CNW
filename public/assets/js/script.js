@@ -823,3 +823,207 @@ const pageCart = document.querySelector("[page-cart]");
 if (pageCart) {
     drawCart();
 }
+
+// Contact Page FAQ Accordion
+const faqQuestions = document.querySelectorAll(".section-13 .inner-faq-question");
+if (faqQuestions.length > 0) {
+    faqQuestions.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const item = btn.closest(".inner-faq-item");
+            if (item) {
+                const wasActive = item.classList.contains("active");
+                document.querySelectorAll(".section-13 .inner-faq-item").forEach(other => {
+                    other.classList.remove("active");
+                });
+                if (!wasActive) {
+                    item.classList.add("active");
+                }
+            }
+        });
+    });
+}
+
+// Contact Page Form Submit Handler
+const contactPageForm = document.querySelector("#contact-page-form");
+if (contactPageForm) {
+    contactPageForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const submitBtn = contactPageForm.querySelector("#contact-submit-button");
+        const originalBtnHtml = submitBtn ? submitBtn.innerHTML : "";
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang gửi tin nhắn...';
+        }
+
+        const formData = {
+            fullName: (contactPageForm.fullName ? contactPageForm.fullName.value : "").trim(),
+            phone: (contactPageForm.phone ? contactPageForm.phone.value : "").trim(),
+            email: (contactPageForm.email ? contactPageForm.email.value : "").trim(),
+            subject: (contactPageForm.subject ? contactPageForm.subject.value : "Tư vấn tour").trim(),
+            message: (contactPageForm.message ? contactPageForm.message.value : "").trim()
+        };
+
+        fetch(`${window.location.origin}${CONTEXT_PATH}/contact`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
+
+            if (data.code === "success") {
+                contactPageForm.reset();
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Gửi tin nhắn thành công!',
+                        text: data.message || 'Cảm ơn bạn! Đội ngũ tư vấn sẽ liên hệ lại trong thời gian sớm nhất.',
+                        confirmButtonText: 'Tuyệt vời',
+                        confirmButtonColor: '#2563eb',
+                        customClass: { popup: 'client-swal-modal' }
+                    });
+                } else {
+                    alert(data.message);
+                }
+            } else {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Chưa thể gửi tin nhắn',
+                        text: data.message || 'Vui lòng kiểm tra lại thông tin và thử lại sau.',
+                        confirmButtonText: 'Đã hiểu',
+                        confirmButtonColor: '#ef4444',
+                        customClass: { popup: 'client-swal-modal' }
+                    });
+                } else {
+                    alert(data.message);
+                }
+            }
+        })
+        .catch(err => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalBtnHtml;
+            }
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi kết nối',
+                    text: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau!',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#ef4444',
+                    customClass: { popup: 'client-swal-modal' }
+                });
+            } else {
+                alert('Có lỗi xảy ra, vui lòng thử lại sau!');
+            }
+        });
+    });
+}
+
+// News Sidebar Newsletter Subscription
+const newsSidebarBtn = document.querySelector("#news-sidebar-btn");
+const newsSidebarEmail = document.querySelector("#news-sidebar-email");
+if (newsSidebarBtn && newsSidebarEmail) {
+    newsSidebarBtn.addEventListener("click", () => {
+        const email = newsSidebarEmail.value.trim();
+        if (!email) {
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Chưa nhập email',
+                    text: 'Vui lòng nhập địa chỉ email của bạn!',
+                    confirmButtonText: 'Đã hiểu',
+                    confirmButtonColor: '#f59e0b',
+                    customClass: { popup: 'client-swal-modal' }
+                });
+            } else {
+                alert('Vui lòng nhập địa chỉ email của bạn!');
+            }
+            return;
+        }
+
+        newsSidebarBtn.disabled = true;
+        const origText = newsSidebarBtn.innerText;
+        newsSidebarBtn.innerText = 'Đang gửi...';
+
+        fetch(`${window.location.origin}${CONTEXT_PATH}/contact/create`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ email: email })
+        })
+        .then(res => res.json())
+        .then(data => {
+            newsSidebarBtn.disabled = false;
+            newsSidebarBtn.innerText = origText;
+
+            if (data.code === "success") {
+                newsSidebarEmail.value = '';
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Đăng ký thành công!',
+                        text: data.message || 'Cảm ơn bạn! Chúng tôi sẽ gửi những cẩm nang du lịch hữu ích nhất.',
+                        confirmButtonText: 'Tuyệt vời',
+                        confirmButtonColor: '#2563eb',
+                        customClass: { popup: 'client-swal-modal' }
+                    });
+                } else {
+                    alert(data.message);
+                }
+            } else if (data.code === "exist") {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Email đã tồn tại',
+                        text: data.message || 'Email này đã đăng ký nhận tin trước đó rồi!',
+                        confirmButtonText: 'Đã hiểu',
+                        confirmButtonColor: '#2563eb',
+                        customClass: { popup: 'client-swal-modal' }
+                    });
+                } else {
+                    alert(data.message);
+                }
+            } else {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Chưa thể đăng ký',
+                        text: data.message || 'Có lỗi xảy ra, vui lòng thử lại sau!',
+                        confirmButtonText: 'Đóng',
+                        confirmButtonColor: '#ef4444',
+                        customClass: { popup: 'client-swal-modal' }
+                    });
+                } else {
+                    alert(data.message);
+                }
+            }
+        })
+        .catch(err => {
+            newsSidebarBtn.disabled = false;
+            newsSidebarBtn.innerText = origText;
+            if (typeof Swal !== 'undefined') {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi kết nối',
+                    text: 'Không thể kết nối đến máy chủ. Vui lòng thử lại sau!',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#ef4444',
+                    customClass: { popup: 'client-swal-modal' }
+                });
+            } else {
+                alert('Có lỗi xảy ra, vui lòng thử lại sau!');
+            }
+        });
+    });
+}

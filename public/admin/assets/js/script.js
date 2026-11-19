@@ -2022,3 +2022,161 @@ if (pagination) {
         pagination.value = valueCurrent;
     }
 }
+
+// Button Change Status
+const listButtonChangeStatus = document.querySelectorAll("[button-change-status]");
+if (listButtonChangeStatus.length > 0) {
+    listButtonChangeStatus.forEach(button => {
+        button.addEventListener("click", () => {
+            const dataApi = button.getAttribute("data-api");
+            if (dataApi) {
+                fetch(dataApi, {
+                    method: "PATCH"
+                })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.code == "error") {
+                            showAlert(data.message || "Cập nhật trạng thái thất bại!", "error");
+                        } else if (data.code == "success") {
+                            setFlashAlert(data.message || "Cập nhật trạng thái thành công!", "success");
+                            window.location.reload();
+                        }
+                    })
+                    .catch(() => {
+                        showAlert("Có lỗi xảy ra, vui lòng thử lại!", "error");
+                    });
+            }
+        });
+    });
+}
+
+// News Create
+const newsCreateForm = document.querySelector("#news-create-form");
+if (newsCreateForm) {
+    const validator = new JustValidate("#news-create-form");
+
+    validator
+        .addField("#title", [
+            {
+                rule: "required",
+                errorMessage: "Vui lòng nhập tiêu đề bài viết!"
+            },
+        ])
+        .onSuccess(event => {
+            const title = event.target.title.value;
+            const category = event.target.category ? event.target.category.value : "";
+            const author = event.target.author ? event.target.author.value : "";
+            const status = event.target.status ? event.target.status.value : "active";
+            const slug = event.target.slug ? event.target.slug.value : "";
+            const featured = event.target.featured && event.target.featured.checked ? "1" : "0";
+            const description = event.target.description ? event.target.description.value : "";
+            const content = (typeof tinymce !== "undefined" && tinymce.get("content")) ? tinymce.get("content").getContent() : (event.target.content ? event.target.content.value : "");
+
+            const avatars = (filePond.avatar && typeof filePond.avatar.getFiles === "function") ? filePond.avatar.getFiles() : [];
+            let avatar = null;
+            if (avatars.length > 0) {
+                avatar = avatars[0].file;
+            }
+
+            const formData = new FormData();
+            formData.append("title", title);
+            formData.append("category", category);
+            formData.append("author", author);
+            formData.append("status", status);
+            formData.append("slug", slug);
+            formData.append("featured", featured);
+            if (avatar) {
+                formData.append("avatar", avatar);
+            }
+            formData.append("description", description);
+            formData.append("content", content);
+
+            fetch(`/${pathAdmin}/news/create`, {
+                method: "POST",
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.code == "error") {
+                        showAlert(data.message || "Tạo bài viết thất bại!", "error");
+                    } else if (data.code == "success") {
+                        setFlashAlert(data.message || "Tạo bài viết thành công!", "success");
+                        window.location.href = `/${pathAdmin}/news/list`;
+                    }
+                })
+                .catch(() => {
+                    showAlert("Có lỗi xảy ra, vui lòng thử lại!", "error");
+                });
+        });
+}
+
+// News Edit
+const newsEditForm = document.querySelector("#news-edit-form");
+if (newsEditForm) {
+    const validator = new JustValidate("#news-edit-form");
+
+    validator
+        .addField("#title", [
+            {
+                rule: "required",
+                errorMessage: "Vui lòng nhập tiêu đề bài viết!"
+            },
+        ])
+        .onSuccess(event => {
+            const id = event.target.id.value;
+            const title = event.target.title.value;
+            const category = event.target.category ? event.target.category.value : "";
+            const author = event.target.author ? event.target.author.value : "";
+            const status = event.target.status ? event.target.status.value : "active";
+            const slug = event.target.slug ? event.target.slug.value : "";
+            const featured = event.target.featured && event.target.featured.checked ? "1" : "0";
+            const description = event.target.description ? event.target.description.value : "";
+            const content = (typeof tinymce !== "undefined" && tinymce.get("content")) ? tinymce.get("content").getContent() : (event.target.content ? event.target.content.value : "");
+
+            const avatars = (filePond.avatar && typeof filePond.avatar.getFiles === "function") ? filePond.avatar.getFiles() : [];
+            let avatar = null;
+            if (avatars.length > 0) {
+                avatar = avatars[0].file;
+                const elementImageDefault = event.target.avatar ? event.target.avatar.closest("[image-default]") : null;
+                if (elementImageDefault) {
+                    const imageDefault = elementImageDefault.getAttribute("image-default");
+                    if (imageDefault && avatar && imageDefault.includes(avatar.name)) {
+                        avatar = "keep";
+                    }
+                }
+            } else {
+                avatar = "deleted";
+            }
+
+            const formData = new FormData();
+            formData.append("id", id);
+            formData.append("title", title);
+            formData.append("category", category);
+            formData.append("author", author);
+            formData.append("status", status);
+            formData.append("slug", slug);
+            formData.append("featured", featured);
+            if (avatar) {
+                formData.append("avatar", avatar);
+            }
+            formData.append("description", description);
+            formData.append("content", content);
+
+            fetch(`/${pathAdmin}/news/edit/${id}`, {
+                method: "PATCH",
+                body: formData
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.code == "error") {
+                        showAlert(data.message || "Cập nhật bài viết thất bại!", "error");
+                    } else if (data.code == "success") {
+                        setFlashAlert(data.message || "Cập nhật bài viết thành công!", "success");
+                        window.location.reload();
+                    }
+                })
+                .catch(() => {
+                    showAlert("Có lỗi xảy ra, vui lòng thử lại!", "error");
+                });
+        });
+}

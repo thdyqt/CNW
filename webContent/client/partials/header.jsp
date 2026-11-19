@@ -38,7 +38,7 @@
             <nav class="inner-menu">
                 <ul>
                     <li>
-                        <a class="${empty categoryCurrent ? 'active' : ''}" href="${pageContext.request.contextPath}/">Trang Chủ</a>
+                        <a class="${empty categoryCurrent and pageCurrent != 'contact' and pageCurrent != 'cart' and pageCurrent != 'search' and pageCurrent != 'news' ? 'active' : ''}" href="${pageContext.request.contextPath}/">Trang Chủ</a>
                     </li>
                     <c:forEach var="item" items="${categoryList}">
                         <li>
@@ -56,10 +56,10 @@
                         </li>
                     </c:forEach>
                     <li>
-                        <a href="#">Tin Tức</a>
+                        <a class="${pageCurrent == 'news' ? 'active' : ''}" href="${pageContext.request.contextPath}/news">Tin Tức</a>
                     </li>
                     <li>
-                        <a href="#">Liên Hệ</a>
+                        <a class="${pageCurrent == 'contact' ? 'active' : ''}" href="${pageContext.request.contextPath}/contact">Liên Hệ</a>
                     </li>
                 </ul>
                 <div class="inner-overlay"></div>

@@ -60,5 +60,30 @@ public class CityDAO {
         }
         return new City(id, "Đà Nẵng");
     }
+
+    public City getCityByName(String name) {
+        if (name == null || name.trim().isEmpty()) return null;
+        Connection conn = DBContext.getConnection();
+        if (conn != null) {
+            try {
+                String sql = "SELECT * FROM cities WHERE name LIKE ? LIMIT 1";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.setString(1, "%" + name.trim() + "%");
+                ResultSet rs = ps.executeQuery();
+                if (rs.next()) {
+                    City c = new City(rs.getInt("id"), rs.getString("name"));
+                    conn.close();
+                    return c;
+                }
+                conn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        for (City c : getAllCities()) {
+            if (c.getName().equalsIgnoreCase(name.trim())) return c;
+        }
+        return null;
+    }
 }
 

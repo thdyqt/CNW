@@ -1,11 +1,16 @@
 package model.BO;
 
 import model.BEAN.Order;
+import model.BEAN.OrderResult;
 import model.DAO.OrderDAO;
 import java.util.List;
 
 public class OrderBO {
     private final OrderDAO orderDAO = new OrderDAO();
+
+    public OrderResult createOrderWithStockCheck(Order order) {
+        return orderDAO.createOrderWithStockCheck(order);
+    }
 
     public boolean createOrder(Order order) {
         return orderDAO.createOrder(order);

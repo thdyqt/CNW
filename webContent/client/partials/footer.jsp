@@ -13,10 +13,10 @@
             <nav class="inner-links">
                 <ul>
                     <li><a href="${pageContext.request.contextPath}/">Trang Chủ</a></li>
-                    <li><a href="#">Tour Trong Nước</a></li>
-                    <li><a href="#">Tour Nước Ngoài</a></li>
-                    <li><a href="#">Tin Tức</a></li>
-                    <li><a href="#">Liên Hệ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/category/tour-trong-nuoc">Tour Trong Nước</a></li>
+                    <li><a href="${pageContext.request.contextPath}/category/tour-nuoc-ngoai">Tour Nước Ngoài</a></li>
+                    <li><a href="${pageContext.request.contextPath}/news">Tin Tức</a></li>
+                    <li><a href="${pageContext.request.contextPath}/contact">Liên Hệ</a></li>
                 </ul>
             </nav>
             <nav class="inner-socials">

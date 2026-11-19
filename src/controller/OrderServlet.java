@@ -26,14 +26,99 @@ public class OrderServlet extends HttpServlet {
         req.setCharacterEncoding("UTF-8");
         resp.setCharacterEncoding("UTF-8");
 
+        String uri = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        String path = uri.substring(contextPath.length());
+
+        // 1. Nhận kết quả thanh toán từ VNPay: /order/payment-vnpay-result
+        if (path.contains("/payment-vnpay-result")) {
+            handleVNPayResult(req, resp);
+            return;
+        }
+
+        // 2. Chuyển hướng thanh toán VNPay: /order/payment-vnpay
+        if (path.contains("/payment-vnpay")) {
+            handleVNPayRedirect(req, resp);
+            return;
+        }
+
+        // 3. Trang đặt hàng thành công mặc định: /order/success hoặc /order
         String orderCode = req.getParameter("orderCode");
         String phone = req.getParameter("phone");
 
         Order orderDetail = orderDAO.getOrderByCodeAndPhone(orderCode, phone);
 
-        req.setAttribute("pageTitle", "Đặt hàng thành công - 28Tech Travel");
+        req.setAttribute("pageTitle", "Đặt hàng thành công - DUT Travel");
         req.setAttribute("orderDetail", orderDetail);
         req.getRequestDispatcher("/webContent/client/pages/order-success.jsp").forward(req, resp);
+    }
+
+    private void handleVNPayRedirect(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String orderCode = req.getParameter("orderCode");
+        if (orderCode == null || orderCode.trim().isEmpty()) {
+            resp.sendRedirect(req.getContextPath() + "/cart");
+            return;
+        }
+
+        Order order = orderDAO.getOrderByCode(orderCode.trim());
+        if (order == null || order.isDeleted()) {
+            resp.sendRedirect(req.getContextPath() + "/cart");
+            return;
+        }
+
+        // Nếu đơn hàng đã thanh toán thành công rồi thì chuyển thẳng sang trang success
+        if ("paid".equalsIgnoreCase(order.getPaymentStatus())) {
+            resp.sendRedirect(req.getContextPath() + "/order/success?orderCode=" + order.getCode() + "&phone=" + (order.getPhone() != null ? order.getPhone() : ""));
+            return;
+        }
+
+        // Xây dựng returnUrl động tương thích cả localhost lẫn domain thật
+        String baseUrl = req.getScheme() + "://" + req.getServerName()
+                + ((req.getServerPort() == 80 || req.getServerPort() == 443) ? "" : ":" + req.getServerPort())
+                + req.getContextPath();
+        String returnUrl = baseUrl + "/order/payment-vnpay-result";
+
+        String paymentUrl = VNPayUtil.createPaymentUrl(req, order.getCode(), (long) order.getTotal(), returnUrl);
+        resp.sendRedirect(paymentUrl);
+    }
+
+    private void handleVNPayResult(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String secretKey = EnvUtil.get("VNPAY_SECRET", "CNBZTMKIPROHQISCKDKSWCCUQJRUNOBW");
+        boolean validSignature = VNPayUtil.verifyCallback(req, secretKey);
+
+        String vnp_ResponseCode = req.getParameter("vnp_ResponseCode");
+        String vnp_TransactionStatus = req.getParameter("vnp_TransactionStatus");
+        String vnp_TxnRef = req.getParameter("vnp_TxnRef");
+
+        String orderCode = "";
+        if (vnp_TxnRef != null && vnp_TxnRef.contains("-")) {
+            orderCode = vnp_TxnRef.split("-")[0];
+        } else if (vnp_TxnRef != null) {
+            orderCode = vnp_TxnRef;
+        }
+
+        Order order = !orderCode.isEmpty() ? orderDAO.getOrderByCode(orderCode) : null;
+        String phoneParam = (order != null && order.getPhone() != null) ? order.getPhone() : "";
+
+        if (validSignature) {
+            if ("00".equals(vnp_ResponseCode) && "00".equals(vnp_TransactionStatus)) {
+                // Giao dịch thành công
+                if (!orderCode.isEmpty()) {
+                    orderDAO.updatePaymentStatus(orderCode, "paid");
+                }
+                resp.sendRedirect(req.getContextPath() + "/order/success?orderCode=" + orderCode + "&phone=" + phoneParam + "&paymentSuccess=1");
+            } else {
+                // Khách hàng hủy giao dịch hoặc thanh toán không thành công
+                resp.sendRedirect(req.getContextPath() + "/order/success?orderCode=" + orderCode + "&phone=" + phoneParam + "&paymentFailed=1");
+            }
+        } else {
+            // Chữ ký không hợp lệ
+            if (order != null) {
+                resp.sendRedirect(req.getContextPath() + "/order/success?orderCode=" + orderCode + "&phone=" + phoneParam + "&paymentFailed=1");
+            } else {
+                resp.sendRedirect(req.getContextPath() + "/cart");
+            }
+        }
     }
 
     @Override
@@ -76,7 +161,7 @@ public class OrderServlet extends HttpServlet {
                     item.setSlug(tour != null ? tour.getSlug() : "tour");
                     item.setAvatar(tour != null ? tour.getAvatar() : "/public/assets/images/Product-1.jpg");
 
-                    int qAdult = it.has("quantityAdult") ? it.get("quantityAdult").asInt() : 1;
+                    int qAdult = it.has("quantityAdult") ? it.get("quantityAdult").asInt() : 0;
                     int qChild = it.has("quantityChildren") ? it.get("quantityChildren").asInt() : 0;
                     int qBaby = it.has("quantityBaby") ? it.get("quantityBaby").asInt() : 0;
 
@@ -84,9 +169,9 @@ public class OrderServlet extends HttpServlet {
                     item.setQuantityChildren(qChild);
                     item.setQuantityBaby(qBaby);
 
-                    double pAdult = tour != null ? tour.getPriceNewAdult() : 3890000;
-                    double pChild = tour != null ? tour.getPriceNewChildren() : 2700000;
-                    double pBaby = tour != null ? tour.getPriceNewBaby() : 800000;
+                    double pAdult = tour != null ? tour.getPriceNewAdult() : 0;
+                    double pChild = tour != null ? tour.getPriceNewChildren() : 0;
+                    double pBaby = tour != null ? tour.getPriceNewBaby() : 0;
 
                     item.setPriceNewAdult(pAdult);
                     item.setPriceNewChildren(pChild);
@@ -105,17 +190,24 @@ public class OrderServlet extends HttpServlet {
             order.setSubTotal(subTotal);
             order.setTotal(subTotal);
 
-            orderDAO.createOrder(order);
+            OrderResult result = orderDAO.createOrderWithStockCheck(order);
+            ObjectNode respJson = mapper.createObjectNode();
+            if (result != null && result.isSuccess()) {
+                respJson.put("code", "success");
+                respJson.put("message", "Đặt hàng thành công!");
+                respJson.put("orderCode", orderCode);
+            } else {
+                respJson.put("code", "error");
+                respJson.put("message", result != null ? result.getMessage() : "Đặt hàng không thành công!");
+            }
+            resp.getWriter().write(mapper.writeValueAsString(respJson));
 
         } catch (Exception e) {
             e.printStackTrace();
+            ObjectNode respJson = mapper.createObjectNode();
+            respJson.put("code", "error");
+            respJson.put("message", "Đã xảy ra lỗi khi tạo đơn hàng: " + e.getMessage());
+            resp.getWriter().write(mapper.writeValueAsString(respJson));
         }
-
-        ObjectNode respJson = mapper.createObjectNode();
-        respJson.put("code", "success");
-        respJson.put("message", "Đặt hàng thành công!");
-        respJson.put("orderCode", orderCode);
-
-        resp.getWriter().write(mapper.writeValueAsString(respJson));
     }
 }

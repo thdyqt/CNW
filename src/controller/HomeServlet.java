@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 public class HomeServlet extends HttpServlet {
     private final TourDAO tourDAO = new TourDAO();
+    private final NewsDAO newsDAO = new NewsDAO();
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -24,10 +25,17 @@ public class HomeServlet extends HttpServlet {
         List<Tour> tourListSection4 = tourDAO.getToursByCategories(Arrays.asList(1, 2, 3, 4), 8);
         List<Tour> tourListSection6 = tourDAO.getToursByCategories(Arrays.asList(5, 6, 7), 8);
 
-        req.setAttribute("pageTitle", "Trang chủ - 28Tech Travel");
+        // Lấy 1 bài viết tiêu điểm và 4 bài viết mới nhất (loại trừ bài tiêu điểm)
+        News featuredNews = newsDAO.getFeaturedNews();
+        int excludeId = (featuredNews != null) ? featuredNews.getId() : 0;
+        List<News> latestNews = newsDAO.getLatestNewsExcluding(excludeId, 4);
+
+        req.setAttribute("pageTitle", "Trang chủ - DUT Travel");
         req.setAttribute("tourListSection2", tourListSection2);
         req.setAttribute("tourListSection4", tourListSection4);
         req.setAttribute("tourListSection6", tourListSection6);
+        req.setAttribute("featuredNews", featuredNews);
+        req.setAttribute("latestNews", latestNews);
 
         req.getRequestDispatcher("/webContent/client/pages/home.jsp").forward(req, resp);
     }
