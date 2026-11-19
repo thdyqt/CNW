@@ -14,7 +14,7 @@
     <!-- Global Common Data Filter -->
     <filter>
         <filter-name>CommonDataFilter</filter-name>
-        <filter-class>com.tour.filter.CommonDataFilter</filter-class>
+        <filter-class>filter.CommonDataFilter</filter-class>
     </filter>
     <filter-mapping>
         <filter-name>CommonDataFilter</filter-name>
@@ -24,7 +24,7 @@
     <!-- Servlets -->
     <servlet>
         <servlet-name>HomeServlet</servlet-name>
-        <servlet-class>com.tour.controller.HomeServlet</servlet-class>
+        <servlet-class>controller.HomeServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>HomeServlet</servlet-name>
@@ -33,7 +33,7 @@
 
     <servlet>
         <servlet-name>TourDetailServlet</servlet-name>
-        <servlet-class>com.tour.controller.TourDetailServlet</servlet-class>
+        <servlet-class>controller.TourDetailServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>TourDetailServlet</servlet-name>
@@ -42,7 +42,7 @@
 
     <servlet>
         <servlet-name>CategoryServlet</servlet-name>
-        <servlet-class>com.tour.controller.CategoryServlet</servlet-class>
+        <servlet-class>controller.CategoryServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>CategoryServlet</servlet-name>
@@ -51,7 +51,7 @@
 
     <servlet>
         <servlet-name>SearchServlet</servlet-name>
-        <servlet-class>com.tour.controller.SearchServlet</servlet-class>
+        <servlet-class>controller.SearchServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>SearchServlet</servlet-name>
@@ -60,7 +60,7 @@
 
     <servlet>
         <servlet-name>CartServlet</servlet-name>
-        <servlet-class>com.tour.controller.CartServlet</servlet-class>
+        <servlet-class>controller.CartServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>CartServlet</servlet-name>
@@ -70,7 +70,7 @@
 
     <servlet>
         <servlet-name>OrderServlet</servlet-name>
-        <servlet-class>com.tour.controller.OrderServlet</servlet-class>
+        <servlet-class>controller.OrderServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>OrderServlet</servlet-name>
@@ -80,7 +80,7 @@
 
     <servlet>
         <servlet-name>ContactServlet</servlet-name>
-        <servlet-class>com.tour.controller.ContactServlet</servlet-class>
+        <servlet-class>controller.ContactServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>ContactServlet</servlet-name>
@@ -90,7 +90,7 @@
     <!-- Admin Servlets -->
     <servlet>
         <servlet-name>AdminDashboardServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminDashboardServlet</servlet-class>
+        <servlet-class>controller.admin.AdminDashboardServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminDashboardServlet</servlet-name>
@@ -101,7 +101,7 @@
 
     <servlet>
         <servlet-name>AdminTourServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminTourServlet</servlet-class>
+        <servlet-class>controller.admin.AdminTourServlet</servlet-class>
         <multipart-config>
             <max-file-size>20971520</max-file-size>
             <max-request-size>41943040</max-request-size>
@@ -115,7 +115,7 @@
 
     <servlet>
         <servlet-name>AdminCategoryServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminCategoryServlet</servlet-class>
+        <servlet-class>controller.admin.AdminCategoryServlet</servlet-class>
         <multipart-config>
             <max-file-size>20971520</max-file-size>
             <max-request-size>41943040</max-request-size>
@@ -129,7 +129,7 @@
 
     <servlet>
         <servlet-name>AdminOrderServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminOrderServlet</servlet-class>
+        <servlet-class>controller.admin.AdminOrderServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminOrderServlet</servlet-name>
@@ -138,7 +138,7 @@
 
     <servlet>
         <servlet-name>AdminContactServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminContactServlet</servlet-class>
+        <servlet-class>controller.admin.AdminContactServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminContactServlet</servlet-name>
@@ -147,7 +147,7 @@
 
     <servlet>
         <servlet-name>AdminSettingServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminSettingServlet</servlet-class>
+        <servlet-class>controller.admin.AdminSettingServlet</servlet-class>
         <multipart-config>
             <max-file-size>20971520</max-file-size>
             <max-request-size>41943040</max-request-size>
@@ -161,7 +161,7 @@
 
     <servlet>
         <servlet-name>AdminUserServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminUserServlet</servlet-class>
+        <servlet-class>controller.admin.AdminUserServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminUserServlet</servlet-name>
@@ -171,7 +171,7 @@
 
     <servlet>
         <servlet-name>AdminProfileServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminProfileServlet</servlet-class>
+        <servlet-class>controller.admin.AdminProfileServlet</servlet-class>
         <multipart-config>
             <max-file-size>20971520</max-file-size>
             <max-request-size>41943040</max-request-size>
@@ -185,7 +185,7 @@
 
     <servlet>
         <servlet-name>AdminAccountServlet</servlet-name>
-        <servlet-class>com.tour.controller.admin.AdminAccountServlet</servlet-class>
+        <servlet-class>controller.admin.AdminAccountServlet</servlet-class>
     </servlet>
     <servlet-mapping>
         <servlet-name>AdminAccountServlet</servlet-name>
