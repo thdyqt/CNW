@@ -37,8 +37,9 @@
         <div class="inner-group">
             <label class="inner-label" for="status">Trạng thái</label>
             <select id="status" name="status">
+                <option value="initial" ${accountAdmin.status == 'initial' ? 'selected' : ''}>Khởi tạo</option>
                 <option value="active" ${accountAdmin.status == 'active' ? 'selected' : ''}>Hoạt động</option>
-                <option value="inactive" ${accountAdmin.status == 'inactive' ? 'selected' : ''}>Dừng hoạt động</option>
+                <option value="inactive" ${accountAdmin.status == 'inactive' ? 'selected' : ''}>Tạm dừng</option>
             </select>
         </div>
         <div class="inner-group inner-two-col">

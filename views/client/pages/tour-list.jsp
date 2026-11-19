@@ -112,6 +112,7 @@
                 </div>
                 <div class="inner-list-tour">
                     <c:forEach var="item" items="${tourListSection9}">
+                        <c:set var="item" value="${item}" scope="request" />
                         <jsp:include page="../mixins/product-item.jsp" />
                     </c:forEach>
                 </div>

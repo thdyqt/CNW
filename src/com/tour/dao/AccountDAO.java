@@ -1,5 +1,7 @@
 package com.tour.dao;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tour.model.Account;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -8,11 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AccountDAO {
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     public List<Account> getAccounts(String status, String roleId, String startDate, String endDate, String keyword, int page, int limit) {
         List<Account> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(
-            "SELECT a.*, r.name as role_name FROM accounts_admin a LEFT JOIN roles r ON a.role_id = r.id WHERE a.deleted = 0"
+            "SELECT a.*, r.name as role_name, r.permissions as role_permissions FROM accounts_admin a LEFT JOIN roles r ON a.role_id = r.id WHERE a.deleted = 0"
         );
         List<Object> params = new ArrayList<>();
 
@@ -118,7 +121,7 @@ public class AccountDAO {
     public Account getAccountById(int id) {
         try (Connection conn = DBContext.getConnection()) {
             if (conn != null) {
-                String sql = "SELECT a.*, r.name as role_name FROM accounts_admin a LEFT JOIN roles r ON a.role_id = r.id WHERE a.id = ? AND a.deleted = 0";
+                String sql = "SELECT a.*, r.name as role_name, r.permissions as role_permissions FROM accounts_admin a LEFT JOIN roles r ON a.role_id = r.id WHERE a.id = ? AND a.deleted = 0";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setInt(1, id);
                     try (ResultSet rs = ps.executeQuery()) {
@@ -134,13 +137,51 @@ public class AccountDAO {
         return null;
     }
 
+    public Account getAccountByToken(String token) {
+        if (token == null || token.trim().isEmpty()) {
+            return null;
+        }
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                String sql = "SELECT a.*, r.name as role_name, r.permissions as role_permissions FROM accounts_admin a LEFT JOIN roles r ON a.role_id = r.id WHERE a.token = ? AND a.deleted = 0";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, token.trim());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            return mapResultSetToAccount(rs);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public boolean updateToken(int id, String token) {
+        String sql = "UPDATE accounts_admin SET token = ?, updated_at = NOW() WHERE id = ?";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, token);
+                    ps.setInt(2, id);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public Account getAccountByEmail(String email) {
         if (email == null || email.trim().isEmpty()) {
             return null;
         }
         try (Connection conn = DBContext.getConnection()) {
             if (conn != null) {
-                String sql = "SELECT a.*, r.name as role_name FROM accounts_admin a LEFT JOIN roles r ON a.role_id = r.id WHERE a.email = ? AND a.deleted = 0";
+                String sql = "SELECT a.*, r.name as role_name, r.permissions as role_permissions FROM accounts_admin a LEFT JOIN roles r ON a.role_id = r.id WHERE a.email = ? AND a.deleted = 0";
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, email.trim());
                     try (ResultSet rs = ps.executeQuery()) {
@@ -201,11 +242,15 @@ public class AccountDAO {
                     ps.setString(1, acc.getFullName());
                     ps.setString(2, acc.getEmail());
                     ps.setString(3, acc.getPhone());
-                    ps.setInt(4, acc.getRoleId() > 0 ? acc.getRoleId() : 1);
+                    if (acc.getRoleId() > 0) {
+                        ps.setInt(4, acc.getRoleId());
+                    } else {
+                        ps.setNull(4, java.sql.Types.INTEGER);
+                    }
                     ps.setString(5, acc.getPosition());
-                    ps.setString(6, acc.getStatus() != null ? acc.getStatus() : "active");
+                    ps.setString(6, acc.getStatus() != null && !acc.getStatus().trim().isEmpty() ? acc.getStatus().trim() : "initial");
                     ps.setString(7, hashPassword(password));
-                    ps.setString(8, acc.getAvatar());
+                    ps.setString(8, acc.getAvatar() != null ? acc.getAvatar() : "/admin/assets/images/AvatarIcon.jpg");
                     return ps.executeUpdate() > 0;
                 }
             }
@@ -363,13 +408,31 @@ public class AccountDAO {
         } catch (Exception ignored) {}
         if (rName != null && !rName.isEmpty()) {
             acc.setRoleName(rName);
-        } else {
+        } else if (acc.getRoleId() > 0) {
             acc.setRoleName("Quản trị viên");
+        } else {
+            acc.setRoleName("Chưa phân quyền");
         }
         acc.setStatus(rs.getString("status"));
         try {
+            acc.setToken(rs.getString("token"));
+        } catch (Exception ignored) {}
+        try {
             acc.setPassword(rs.getString("password"));
         } catch (Exception ignored) {}
+
+        String permStr = null;
+        try {
+            permStr = rs.getString("role_permissions");
+        } catch (Exception ignored) {}
+        if (permStr != null && !permStr.trim().isEmpty()) {
+            try {
+                List<String> perms = objectMapper.readValue(permStr, new TypeReference<List<String>>() {});
+                acc.setPermissions(perms);
+            } catch (Exception ignored) {}
+        } else {
+            acc.setPermissions(new ArrayList<>());
+        }
         return acc;
     }
 }

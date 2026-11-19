@@ -567,12 +567,9 @@ a {
 }
 
 .section-2 .inner-chart {
-    height: 300px;
-}
-
-.section-2 .inner-chart canvas {
-    width: 100% !important;
-    height: 100% !important;
+    position: relative;
+    height: 350px;
+    width: 100%;
 }
 
 /* Section 3 */

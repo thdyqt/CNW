@@ -47,6 +47,25 @@ public class CommonDataFilter implements Filter {
             if (uri.contains("/admin")) {
                 boolean isAccountRoute = uri.contains("/admin/account") || uri.contains("/admin/login");
                 Account sessionAcc = (Account) httpRequest.getSession().getAttribute("account");
+
+                // Nếu chưa có session (ví dụ sau khi mở lại trình duyệt hoặc hết hạn session),
+                // kiểm tra cookie "token" (chế độ duy trì đăng nhập / nhớ mật khẩu)
+                if (sessionAcc == null || sessionAcc.getId() <= 0) {
+                    javax.servlet.http.Cookie[] cookies = httpRequest.getCookies();
+                    if (cookies != null) {
+                        for (javax.servlet.http.Cookie c : cookies) {
+                            if ("token".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                                Account tokenAcc = accountDAO.getAccountByToken(c.getValue().trim());
+                                if (tokenAcc != null && "active".equalsIgnoreCase(tokenAcc.getStatus())) {
+                                    httpRequest.getSession().setAttribute("account", tokenAcc);
+                                    sessionAcc = tokenAcc;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+
                 if (!isAccountRoute) {
                     if (sessionAcc == null || sessionAcc.getId() <= 0) {
                         String accept = httpRequest.getHeader("Accept");
@@ -68,11 +87,120 @@ public class CommonDataFilter implements Filter {
                 if (sessionAcc != null) {
                     httpRequest.setAttribute("currentAccountAdmin", sessionAcc);
                     httpRequest.setAttribute("account", sessionAcc);
+
+                    // Phân quyền truy cập các chức năng quản trị
+                    if (!isAccountRoute) {
+                        if (uri.endsWith("/admin/dashboard") || uri.endsWith("/admin") || uri.endsWith("/admin/")) {
+                            if (!sessionAcc.hasPermission("dashboard-view")) {
+                                redirectFirstAccessibleModule(httpRequest, (HttpServletResponse) response, sessionAcc);
+                                return;
+                            }
+                        } else {
+                            String requiredPerm = getRequiredPermission(uri);
+                            if (requiredPerm != null && !sessionAcc.hasPermission(requiredPerm)) {
+                                String accept = httpRequest.getHeader("Accept");
+                                String contentType = httpRequest.getContentType();
+                                boolean isAjax = (accept != null && accept.contains("application/json"))
+                                        || (contentType != null && contentType.contains("application/json"))
+                                        || "XMLHttpRequest".equalsIgnoreCase(httpRequest.getHeader("X-Requested-With"));
+                                if (isAjax) {
+                                    HttpServletResponse httpResponse = (HttpServletResponse) response;
+                                    httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                    httpResponse.setContentType("application/json;charset=UTF-8");
+                                    httpResponse.getWriter().write("{\"code\":\"error\",\"message\":\"Bạn không có quyền thực hiện chức năng này!\"}");
+                                    return;
+                                }
+                                HttpServletResponse httpResponse = (HttpServletResponse) response;
+                                httpResponse.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                                httpRequest.setAttribute("pageTitle", "Truy cập bị từ chối");
+                                httpRequest.getRequestDispatcher("/views/admin/pages/error-403.jsp").forward(request, response);
+                                return;
+                            }
+                        }
+                    }
                 }
             }
         }
 
         chain.doFilter(request, response);
+    }
+
+    private void redirectFirstAccessibleModule(HttpServletRequest req, HttpServletResponse resp, Account acc) throws IOException {
+        String ctx = req.getContextPath();
+        if (acc.hasPermission("tour-view")) {
+            resp.sendRedirect(ctx + "/admin/tour/list");
+        } else if (acc.hasPermission("category-view")) {
+            resp.sendRedirect(ctx + "/admin/category/list");
+        } else if (acc.hasPermission("order-view")) {
+            resp.sendRedirect(ctx + "/admin/order/list");
+        } else if (acc.hasPermission("user-view")) {
+            resp.sendRedirect(ctx + "/admin/user/list");
+        } else if (acc.hasPermission("contact-view")) {
+            resp.sendRedirect(ctx + "/admin/contact/list");
+        } else if (acc.hasPermission("setting-view") || acc.hasPermission("role-view") || acc.hasPermission("account-view")) {
+            resp.sendRedirect(ctx + "/admin/setting/list");
+        } else {
+            resp.sendRedirect(ctx + "/admin/profile/edit");
+        }
+    }
+
+    private String getRequiredPermission(String uri) {
+        if (uri.contains("/admin/account") || uri.contains("/admin/profile") || uri.contains("/admin/login") || uri.contains("/admin/logout")) {
+            return null;
+        }
+        if (uri.contains("/admin/tour")) {
+            if (uri.contains("/create")) return "tour-create";
+            if (uri.contains("/edit")) return "tour-edit";
+            if (uri.contains("/delete") || uri.contains("/change-multi")) return "tour-delete";
+            if (uri.contains("/trash")) return "tour-trash";
+            return "tour-view";
+        }
+        if (uri.contains("/admin/category")) {
+            if (uri.contains("/create")) return "category-create";
+            if (uri.contains("/edit")) return "category-edit";
+            if (uri.contains("/delete") || uri.contains("/change-multi")) return "category-delete";
+            if (uri.contains("/trash")) return "category-trash";
+            return "category-view";
+        }
+        if (uri.contains("/admin/order")) {
+            if (uri.contains("/edit")) return "order-edit";
+            if (uri.contains("/delete") || uri.contains("/change-multi")) return "order-delete";
+            if (uri.contains("/trash")) return "order-trash";
+            return "order-view";
+        }
+        if (uri.contains("/admin/user") || uri.contains("/admin/customer")) {
+            if (uri.contains("/edit")) return "user-edit";
+            if (uri.contains("/delete") || uri.contains("/change-multi")) return "user-delete";
+            return "user-view";
+        }
+        if (uri.contains("/admin/contact")) {
+            if (uri.contains("/delete") || uri.contains("/change-multi")) return "contact-delete";
+            if (uri.contains("/trash")) return "contact-trash";
+            return "contact-view";
+        }
+        if (uri.contains("/admin/setting")) {
+            if (uri.contains("/role")) {
+                if (uri.contains("/create")) return "role-create";
+                if (uri.contains("/edit")) return "role-edit";
+                if (uri.contains("/delete") || uri.contains("/change-multi")) return "role-delete";
+                if (uri.contains("/trash")) return "role-trash";
+                return "role-view";
+            }
+            if (uri.contains("/account-admin")) {
+                if (uri.contains("/create")) return "account-create";
+                if (uri.contains("/edit")) return "account-edit";
+                if (uri.contains("/delete") || uri.contains("/change-multi")) return "account-delete";
+                return "account-view";
+            }
+            if (uri.contains("/website-info")) {
+                return "setting-edit";
+            }
+            return "setting-view";
+        }
+        if (uri.endsWith("/admin/dashboard") || uri.endsWith("/admin") || uri.endsWith("/admin/")) {
+            return "dashboard-view";
+        }
+        return null;
     }
 
     @Override

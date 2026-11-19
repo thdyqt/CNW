@@ -16,7 +16,7 @@
                 Đi nơi đâu bạn muốn
             </h1>
             <p class="inner-desc" data-aos-delay="150" data-aos-duration="800" data-aos="fade-up">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua
+                Khám phá những vùng đất mới cùng các chương trình tour trọn gói hấp dẫn, chất lượng dịch vụ chuẩn 5 sao và ưu đãi độc quyền.
             </p>
             <form class="inner-form" data-aos-delay="300" data-aos-duration="800" data-aos="fade-up" action="" form-search>
                 <div class="inner-box inner-location">
@@ -159,12 +159,12 @@
         <div class="inner-wrap">
             <div class="inner-info">
                 <h2 class="inner-title">
-                    ƯU ĐÃI 2024<br>
+                    ƯU ĐÃI 2026<br>
                     TOUR GIỜ CHỐT
                 </h2>
-                <p class="inner-desc">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor</p>
+                <p class="inner-desc">Săn ngay tour hot giá cực sốc trong tuần, số lượng chỗ có hạn dành cho khách hàng đăng ký sớm nhất!</p>
                 <h3 class="inner-clock-title">Kết thúc sau</h3>
-                <div class="inner-clock-number" clock-expire="2026-09-09T12:00:00">
+                <div class="inner-clock-number" clock-expire="2027-01-01T00:00:00">
                     <div class="inner-item">
                         <div class="inner-time">00</div>
                         <div class="inner-label">Ngày</div>
@@ -193,6 +193,7 @@
                     <div class="swiper-wrapper">
                         <c:forEach var="item" items="${tourListSection2}">
                             <div class="swiper-slide">
+                                <c:set var="item" value="${item}" scope="request" />
                                 <jsp:include page="../mixins/product-item.jsp" />
                             </div>
                         </c:forEach>
@@ -249,6 +250,7 @@
         <h2 class="title" data-aos-duration="800" data-aos="fade-up">Tour Trong Nước</h2>
         <div class="inner-wrap" data-aos-delay="150" data-aos-duration="800" data-aos="fade-up">
             <c:forEach var="item" items="${tourListSection4}">
+                <c:set var="item" value="${item}" scope="request" />
                 <jsp:include page="../mixins/product-item.jsp" />
             </c:forEach>
         </div>
@@ -271,6 +273,7 @@
         <h2 class="title" data-aos-duration="800" data-aos="fade-up">Tour Nước Ngoài</h2>
         <div class="inner-wrap" data-aos-delay="150" data-aos-duration="800" data-aos="fade-up">
             <c:forEach var="item" items="${tourListSection6}">
+                <c:set var="item" value="${item}" scope="request" />
                 <jsp:include page="../mixins/product-item.jsp" />
             </c:forEach>
         </div>

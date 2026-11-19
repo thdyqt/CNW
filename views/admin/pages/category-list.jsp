@@ -3,6 +3,7 @@
 <%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <jsp:include page="../layouts/header.jsp" />
+<c:set var="loggedInAdmin" value="${not empty sessionScope.account ? sessionScope.account : currentAccountAdmin}" />
 
 <h1 class="box-title">Quản lý danh mục</h1>
 
@@ -41,29 +42,39 @@
 <!-- Section-5: Thao tác & Tìm kiếm -->
 <div class="section-5">
     <div class="inner-wrap">
-        <div class="inner-check-status" change-multi data-api="${pageContext.request.contextPath}/${pathAdmin}/category/change-multi">
-            <div class="inner-item">
-                <select>
-                    <option value="">-- Hành động --</option>
-                    <option value="active">Hoạt động</option>
-                    <option value="inactive">Tạm dừng</option>
-                    <option value="delete">Xóa</option>
-                </select>
+        <c:if test="${loggedInAdmin.hasPermission('category-edit') or loggedInAdmin.hasPermission('category-delete')}">
+            <div class="inner-check-status" change-multi data-api="${pageContext.request.contextPath}/${pathAdmin}/category/change-multi">
+                <div class="inner-item">
+                    <select>
+                        <option value="">-- Hành động --</option>
+                        <c:if test="${loggedInAdmin.hasPermission('category-edit')}">
+                            <option value="active">Hoạt động</option>
+                            <option value="inactive">Tạm dừng</option>
+                        </c:if>
+                        <c:if test="${loggedInAdmin.hasPermission('category-delete')}">
+                            <option value="delete">Xóa</option>
+                        </c:if>
+                    </select>
+                </div>
+                <div class="inner-item">
+                    <button type="button">Áp dụng</button>
+                </div>
             </div>
-            <div class="inner-item">
-                <button type="button">Áp dụng</button>
-            </div>
-        </div>
+        </c:if>
         <div class="inner-search">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Tìm kiếm danh mục" search value="${param.keyword}" />
         </div>
-        <div class="inner-button-create">
-            <a href="${pageContext.request.contextPath}/${pathAdmin}/category/create">+ Tạo mới</a>
-        </div>
-        <div class="inner-button-delete">
-            <a href="${pageContext.request.contextPath}/${pathAdmin}/category/trash">Thùng rác</a>
-        </div>
+        <c:if test="${loggedInAdmin.hasPermission('category-create')}">
+            <div class="inner-button-create">
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/category/create">+ Tạo mới</a>
+            </div>
+        </c:if>
+        <c:if test="${loggedInAdmin.hasPermission('category-trash')}">
+            <div class="inner-button-delete">
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/category/trash">Thùng rác</a>
+            </div>
+        </c:if>
     </div>
 </div>
 
@@ -123,12 +134,16 @@
                                 </td>
                                 <td>
                                     <div class="inner-buttons">
-                                        <a class="inner-edit" href="${pageContext.request.contextPath}/${pathAdmin}/category/edit/${item.id}">
-                                            <i class="fa-regular fa-pen-to-square"></i>
-                                        </a>
-                                        <button class="inner-delete" type="button" button-delete data-api="${pageContext.request.contextPath}/${pathAdmin}/category/delete/${item.id}">
-                                            <i class="fa-regular fa-trash-can"></i>
-                                        </button>
+                                        <c:if test="${loggedInAdmin.hasPermission('category-edit')}">
+                                            <a class="inner-edit" href="${pageContext.request.contextPath}/${pathAdmin}/category/edit/${item.id}">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </a>
+                                        </c:if>
+                                        <c:if test="${loggedInAdmin.hasPermission('category-delete')}">
+                                            <button class="inner-delete" type="button" button-delete data-api="${pageContext.request.contextPath}/${pathAdmin}/category/delete/${item.id}">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>
@@ -143,6 +158,18 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<!-- Section-7: Phân trang -->
+<div class="section-7" style="display: flex; align-items: center; justify-content: flex-start; margin-top: 20px;">
+    <span class="inner-label" style="font-size: 14px; font-weight: 600; color: #202224c2; margin-right: 15px;">
+        Hiển thị ${pagination.start} - ${pagination.end} của ${pagination.total}
+    </span>
+    <select class="inner-pagination" pagination>
+        <c:forEach var="i" begin="1" end="${pagination.totalPages > 0 ? pagination.totalPages : 1}">
+            <option value="${i}" ${pagination.currentPage == i ? 'selected' : ''}>Trang ${i}</option>
+        </c:forEach>
+    </select>
 </div>
 
 <jsp:include page="../layouts/footer.jsp" />

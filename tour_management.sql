@@ -39,6 +39,7 @@ CREATE TABLE `accounts_admin` (
   `role_id` INT DEFAULT NULL,
   `position` VARCHAR(100) DEFAULT NULL,
   `status` VARCHAR(50) DEFAULT 'active',
+  `token` VARCHAR(255) DEFAULT NULL,
   `password` VARCHAR(255) DEFAULT NULL,
   `avatar` VARCHAR(255) DEFAULT '/admin/assets/images/AvatarIcon.jpg',
   `slug` VARCHAR(255) DEFAULT NULL,
@@ -239,5 +240,39 @@ INSERT INTO `orders` (`id`, `code`, `full_name`, `phone`, `note`, `items`, `sub_
 INSERT INTO `orders` (`id`, `code`, `full_name`, `phone`, `note`, `items`, `sub_total`, `total`, `payment_method`, `payment_status`, `status`, `updated_by`, `created_at`, `updated_at`, `deleted`) VALUES (9, 'OD7279759730', 'Phan Thanh Duy', '0905383132', '123456', '[{"tourId": "6ad4a73c1dc6114b7491c17e", "quantityAdult": 1, "quantityChildren": 2, "quantityBaby": 0, "locationFrom": "6abf5222262841365017fd00", "priceNewAdult": 2590000, "priceNewChildren": 2090000, "priceNewBaby": 1390000, "departureDate": "2026-10-24 00:00:00"}]', 9550000, 9550000, 'vnpay', 'unpaid', 'initial', 'Phan Thanh Duy', '2026-10-28 13:16:27', '2026-10-28 13:16:27', 0);
 INSERT INTO `orders` (`id`, `code`, `full_name`, `phone`, `note`, `items`, `sub_total`, `total`, `payment_method`, `payment_status`, `status`, `updated_by`, `created_at`, `updated_at`, `deleted`) VALUES (10, 'OD0564158484', 'Phan Thanh Duy', '0905383132', '', '[{"tourId": "6ad4a73c1dc6114b7491c17e", "quantityAdult": 1, "quantityChildren": 0, "quantityBaby": 2, "locationFrom": "6abf5222262841365017fd00", "priceNewAdult": 2590000, "priceNewChildren": 2090000, "priceNewBaby": 1390000, "departureDate": "2026-10-24 00:00:00"}]', 2590000, 2590000, 'vnpay', 'unpaid', 'initial', 'Phan Thanh Duy', '2026-10-28 13:40:46', '2026-10-28 13:40:46', 0);
 INSERT INTO `orders` (`id`, `code`, `full_name`, `phone`, `note`, `items`, `sub_total`, `total`, `payment_method`, `payment_status`, `status`, `updated_by`, `created_at`, `updated_at`, `deleted`) VALUES (11, 'OD7155723840', 'Phan Thanh Duy', '0905383132', '123456', '[{"tourId": "6acb69adc47144e89567b1ab", "quantityAdult": 1, "quantityChildren": 1, "quantityBaby": 1, "locationFrom": "6abf5222262841365017fd09", "priceNewAdult": 2190000, "priceNewChildren": 1490000, "priceNewBaby": 1090000, "departureDate": "2026-10-23 00:00:00"}, {"tourId": "6acb6a3ac47144e89567b1ac", "quantityAdult": 1, "quantityChildren": 2, "quantityBaby": 0, "locationFrom": "6abf5222262841365017fd03", "priceNewAdult": 2290000, "priceNewChildren": 1790000, "priceNewBaby": 1490000, "departureDate": "2026-10-26 00:00:00"}]', 10640000, 10640000, 'vnpay', 'paid', 'initial', 'Phan Thanh Duy', '2026-10-28 14:06:45', '2026-10-28 14:10:12', 0);
+
+-- Table: users (Client accounts for registration & login)
+DROP TABLE IF EXISTS `users`;
+CREATE TABLE `users` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `full_name` VARCHAR(255) NOT NULL,
+  `email` VARCHAR(255) NOT NULL UNIQUE,
+  `password` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(50) DEFAULT NULL,
+  `address` VARCHAR(500) DEFAULT NULL,
+  `avatar` VARCHAR(255) DEFAULT '/admin/assets/images/AvatarIcon2.jpg',
+  `status` VARCHAR(50) DEFAULT 'active',
+  `token_user` VARCHAR(255) DEFAULT NULL,
+  `slug` VARCHAR(255) DEFAULT NULL,
+  `created_by` VARCHAR(255) DEFAULT 'Khách hàng',
+  `updated_by` VARCHAR(255) DEFAULT NULL,
+  `created_at` DATETIME DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `deleted` TINYINT(1) DEFAULT 0,
+  `deleted_by` VARCHAR(255) DEFAULT NULL,
+  `deleted_at` DATETIME DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO `users` (`id`, `full_name`, `email`, `password`, `phone`, `address`, `avatar`, `status`, `token_user`, `slug`, `created_at`) VALUES
+(1, 'Lê Văn A', 'levana@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '01234567890', 'Số 123, đường ABC,...', '/admin/assets/images/AvatarIcon2.jpg', 'active', 'tok_user_001_levana', 'le-van-a', '2026-10-15 08:30:00'),
+(2, 'Lê Văn B', 'levanb@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '01234567891', 'Số 124, đường ABC,...', '/admin/assets/images/AvatarIcon2.jpg', 'inactive', 'tok_user_002_levanb', 'le-van-b', '2026-10-16 09:15:00'),
+(3, 'Trần Thị Mai', 'maitt@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0912345678', 'Số 45 Lê Duẩn, Đà Nẵng', '/admin/assets/images/AvatarIcon2.jpg', 'active', 'tok_user_003_maitt', 'tran-thi-mai', '2026-10-18 10:20:00'),
+(4, 'Nguyễn Văn Cường', 'cuongnv@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0988776655', 'Số 12 Nguyễn Huệ, Quận 1, TP.HCM', '/admin/assets/images/AvatarIcon2.jpg', 'active', 'tok_user_004_cuongnv', 'nguyen-van-cuong', '2026-10-20 14:05:00'),
+(5, 'Phạm Quỳnh Anh', 'anhpq@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0905123456', 'Số 78 Trần Phú, Hà Nội', '/admin/assets/images/AvatarIcon2.jpg', 'inactive', 'tok_user_005_anhpq', 'pham-quynh-anh', '2026-10-22 16:40:00'),
+(6, 'Hoàng Minh Tuấn', 'tuanhm@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0933221100', 'Số 200 Phan Châu Trinh, Đà Nẵng', '/admin/assets/images/AvatarIcon2.jpg', 'active', 'tok_user_006_tuanhm', 'hoang-minh-tuan', '2026-10-25 11:10:00'),
+(7, 'Đỗ Mỹ Linh', 'linhdm@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0977889900', 'Số 89 Nguyễn Tri Phương, Đà Nẵng', '/admin/assets/images/AvatarIcon2.jpg', 'active', 'tok_user_007_linhdm', 'do-my-linh', '2026-10-27 15:30:00'),
+(8, 'Vũ Đức Thịnh', 'thinhvd@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0911223344', 'Số 56 Cầu Giấy, Hà Nội', '/admin/assets/images/AvatarIcon2.jpg', 'active', 'tok_user_008_thinhvd', 'vu-duc-thinh', '2026-10-29 09:45:00'),
+(9, 'Đặng Thu Thảo', 'thaodt@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0944556677', 'Số 15 Võ Văn Tần, Quận 3, TP.HCM', '/admin/assets/images/AvatarIcon2.jpg', 'active', 'tok_user_009_thaodt', 'dang-thu-thao', '2026-10-30 17:00:00'),
+(10, 'Bùi Quốc Anh', 'anhbq@gmail.com', '$2a$10$tiHGGaDxRGX/BSYl5XFk9ubLi5YubPxa5LYIGY5FF0RD1zgf1V1bq', '0966778899', 'Số 99 Hùng Vương, Nha Trang', '/admin/assets/images/AvatarIcon2.jpg', 'inactive', 'tok_user_010_anhbq', 'bui-quoc-anh', '2026-11-02 13:25:00');
 
 SET FOREIGN_KEY_CHECKS = 1;

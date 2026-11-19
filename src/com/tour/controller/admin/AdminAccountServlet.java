@@ -3,7 +3,9 @@ package com.tour.controller.admin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tour.dao.AccountDAO;
+import com.tour.dao.ForgotPasswordDAO;
 import com.tour.model.Account;
+import com.tour.util.MailUtil;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,6 +18,7 @@ import javax.servlet.http.HttpSession;
 public class AdminAccountServlet extends HttpServlet {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final AccountDAO accountDAO = new AccountDAO();
+    private final ForgotPasswordDAO forgotPasswordDAO = new ForgotPasswordDAO();
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -27,8 +30,17 @@ public class AdminAccountServlet extends HttpServlet {
         if (path.endsWith("/logout")) {
             HttpSession session = request.getSession(false);
             if (session != null) {
+                Account acc = (Account) session.getAttribute("account");
+                if (acc != null) {
+                    accountDAO.updateToken(acc.getId(), null);
+                }
                 session.invalidate();
             }
+            javax.servlet.http.Cookie clearCookie = new javax.servlet.http.Cookie("token", "");
+            clearCookie.setPath("/");
+            clearCookie.setMaxAge(0);
+            clearCookie.setHttpOnly(true);
+            response.addCookie(clearCookie);
             response.sendRedirect(contextPath + "/admin/account/login");
             return;
         }
@@ -52,14 +64,49 @@ public class AdminAccountServlet extends HttpServlet {
         }
 
         if (path.endsWith("/otp-password")) {
+            String email = request.getParameter("email");
+            if (email == null || email.trim().isEmpty()) {
+                response.sendRedirect(contextPath + "/admin/account/forgot-password");
+                return;
+            }
             request.setAttribute("pageTitle", "Xác thực OTP");
             request.getRequestDispatcher("/views/admin/pages/otp-password.jsp").forward(request, response);
             return;
         }
 
         if (path.endsWith("/reset-password")) {
+            HttpSession curSession = request.getSession(false);
+            String resetEmail = curSession != null ? (String) curSession.getAttribute("resetPasswordEmail") : null;
+            Account acc = curSession != null ? (Account) curSession.getAttribute("account") : null;
+            if (resetEmail == null && acc == null) {
+                response.sendRedirect(contextPath + "/admin/account/forgot-password");
+                return;
+            }
             request.setAttribute("pageTitle", "Đổi mật khẩu");
             request.getRequestDispatcher("/views/admin/pages/reset-password.jsp").forward(request, response);
+            return;
+        }
+
+        // Check if already authenticated via session or token cookie
+        HttpSession session = request.getSession(false);
+        Account currentAcc = session != null ? (Account) session.getAttribute("account") : null;
+        if (currentAcc == null) {
+            javax.servlet.http.Cookie[] cookies = request.getCookies();
+            if (cookies != null) {
+                for (javax.servlet.http.Cookie c : cookies) {
+                    if ("token".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                        Account tokenAcc = accountDAO.getAccountByToken(c.getValue().trim());
+                        if (tokenAcc != null && "active".equalsIgnoreCase(tokenAcc.getStatus())) {
+                            currentAcc = tokenAcc;
+                            request.getSession().setAttribute("account", tokenAcc);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        if (currentAcc != null && currentAcc.getId() > 0) {
+            response.sendRedirect(contextPath + "/admin/dashboard");
             return;
         }
 
@@ -84,7 +131,16 @@ public class AdminAccountServlet extends HttpServlet {
 
         // 1. Logout POST
         if (path.endsWith("/logout")) {
+            Account acc = (Account) session.getAttribute("account");
+            if (acc != null) {
+                accountDAO.updateToken(acc.getId(), null);
+            }
             session.invalidate();
+            javax.servlet.http.Cookie clearCookie = new javax.servlet.http.Cookie("token", "");
+            clearCookie.setPath("/");
+            clearCookie.setMaxAge(0);
+            clearCookie.setHttpOnly(true);
+            response.addCookie(clearCookie);
             if (isJson) {
                 sendJsonResponse(response, "success", "Đăng xuất thành công!");
                 return;
@@ -139,9 +195,9 @@ public class AdminAccountServlet extends HttpServlet {
             Account newAcc = new Account();
             newAcc.setFullName(fullName != null ? fullName.trim() : "Quản trị viên mới");
             newAcc.setEmail(email.trim());
-            newAcc.setStatus("active");
-            newAcc.setRoleId(1);
-            newAcc.setPosition("Quản trị viên");
+            newAcc.setStatus("initial");
+            newAcc.setRoleId(0);
+            newAcc.setPosition("");
             accountDAO.createAccount(newAcc, password.trim());
 
             if (isJson) {
@@ -172,23 +228,69 @@ public class AdminAccountServlet extends HttpServlet {
                 return;
             }
 
-            sendJsonResponse(response, "success", "Gửi mã OTP thành công! (Mã thử nghiệm: 123456)");
+            if (forgotPasswordDAO.existsActiveOtp(email.trim())) {
+                sendJsonResponse(response, "error", "Vui lòng gửi lại yêu cầu sau 5 phút!");
+                return;
+            }
+
+            // Tạo mã OTP ngẫu nhiên 6 chữ số
+            String otp = String.format("%06d", new java.util.Random().nextInt(1000000));
+            boolean saved = forgotPasswordDAO.saveOtp(email.trim(), otp);
+            if (!saved) {
+                sendJsonResponse(response, "error", "Không thể tạo mã OTP, vui lòng thử lại sau!");
+                return;
+            }
+
+            // Gửi email tự động cho người dùng qua Gmail SMTP
+            String subject = "Mã OTP để lấy lại mật khẩu";
+            String content = "Mã OTP của bạn là <b>" + otp + "</b>. Mã OTP có hiệu lực trong 5 phút, vui lòng không cung cấp cho bất kì ai.";
+            MailUtil.sendMailAsync(email.trim(), subject, content);
+
+            sendJsonResponse(response, "success", "Gửi mã OTP thành công!");
             return;
         }
 
         // 4. OTP Password POST
         if (path.endsWith("/otp-password")) {
+            String email = null;
             String otp = null;
-            if (jsonBody != null && jsonBody.has("otp")) {
-                otp = jsonBody.get("otp").asText();
+            if (jsonBody != null) {
+                if (jsonBody.has("email")) email = jsonBody.get("email").asText();
+                if (jsonBody.has("otp")) otp = jsonBody.get("otp").asText();
             } else {
+                email = request.getParameter("email");
                 otp = request.getParameter("otp");
             }
 
-            if (otp == null || otp.trim().length() != 6) {
+            if (email == null || email.trim().isEmpty() || otp == null || otp.trim().isEmpty()) {
+                sendJsonResponse(response, "error", "Vui lòng nhập đầy đủ Email và mã OTP!");
+                return;
+            }
+
+            boolean isValid = forgotPasswordDAO.verifyOtp(email.trim(), otp.trim());
+            if (!isValid) {
                 sendJsonResponse(response, "error", "Mã OTP không chính xác!");
                 return;
             }
+
+            Account account = accountDAO.getAccountByEmail(email.trim());
+            if (account == null) {
+                sendJsonResponse(response, "error", "Tài khoản không tồn tại!");
+                return;
+            }
+
+            session.setAttribute("resetPasswordEmail", email.trim());
+            session.setAttribute("account", account);
+
+            String token = "tok_adm_" + java.util.UUID.randomUUID().toString().replace("-", "");
+            accountDAO.updateToken(account.getId(), token);
+            account.setToken(token);
+
+            javax.servlet.http.Cookie tokenCookie = new javax.servlet.http.Cookie("token", token);
+            tokenCookie.setPath("/");
+            tokenCookie.setHttpOnly(true);
+            tokenCookie.setMaxAge(24 * 60 * 60);
+            response.addCookie(tokenCookie);
 
             sendJsonResponse(response, "success", "Xác thực OTP thành công!");
             return;
@@ -208,12 +310,48 @@ public class AdminAccountServlet extends HttpServlet {
                 return;
             }
 
-            Account sessionAcc = (Account) session.getAttribute("account");
-            if (sessionAcc != null && sessionAcc.getId() > 0) {
-                accountDAO.updatePassword(sessionAcc.getId(), password.trim());
+            String resetEmail = (String) session.getAttribute("resetPasswordEmail");
+            Account targetAcc = (Account) session.getAttribute("account");
+            if (targetAcc == null && resetEmail != null) {
+                targetAcc = accountDAO.getAccountByEmail(resetEmail);
             }
 
-            sendJsonResponse(response, "success", "Thay đổi mật khẩu thành công! Vui lòng đăng nhập lại.");
+            if (targetAcc == null) {
+                javax.servlet.http.Cookie[] cookies = request.getCookies();
+                if (cookies != null) {
+                    for (javax.servlet.http.Cookie c : cookies) {
+                        if ("token".equals(c.getName()) && c.getValue() != null && !c.getValue().trim().isEmpty()) {
+                            targetAcc = accountDAO.getAccountByToken(c.getValue().trim());
+                            if (targetAcc != null) break;
+                        }
+                    }
+                }
+            }
+
+            if (targetAcc == null || targetAcc.getId() <= 0) {
+                sendJsonResponse(response, "error", "Phiên đổi mật khẩu không hợp lệ hoặc đã hết hạn!");
+                return;
+            }
+
+            boolean updated = accountDAO.updatePassword(targetAcc.getId(), password.trim());
+            if (!updated) {
+                sendJsonResponse(response, "error", "Đổi mật khẩu thất bại, vui lòng thử lại!");
+                return;
+            }
+
+            // Xóa mã OTP và kết thúc phiên đổi mật khẩu
+            forgotPasswordDAO.deleteOtp(targetAcc.getEmail());
+            session.removeAttribute("resetPasswordEmail");
+            session.removeAttribute("account");
+            accountDAO.updateToken(targetAcc.getId(), null);
+
+            javax.servlet.http.Cookie clearCookie = new javax.servlet.http.Cookie("token", "");
+            clearCookie.setPath("/");
+            clearCookie.setMaxAge(0);
+            clearCookie.setHttpOnly(true);
+            response.addCookie(clearCookie);
+
+            sendJsonResponse(response, "success", "Thay đổi mật khẩu thành công!");
             return;
         }
 
@@ -275,8 +413,26 @@ public class AdminAccountServlet extends HttpServlet {
             return;
         }
 
-        // Login success: save account in session
+        // Login success: generate token & save in DB + cookie
+        String token = "tok_adm_" + java.util.UUID.randomUUID().toString().replace("-", "");
+        accountDAO.updateToken(existAccount.getId(), token);
+        existAccount.setToken(token);
+
+        // Save account in session
         session.setAttribute("account", existAccount);
+
+        // Set token cookie
+        javax.servlet.http.Cookie tokenCookie = new javax.servlet.http.Cookie("token", token);
+        tokenCookie.setPath("/");
+        tokenCookie.setHttpOnly(true);
+        if (rememberPassword) {
+            // Duy trì đăng nhập 30 ngày nếu chọn "Nhớ mật khẩu"
+            tokenCookie.setMaxAge(30 * 24 * 60 * 60);
+        } else {
+            // Mặc định 1 ngày nếu không chọn "Nhớ mật khẩu"
+            tokenCookie.setMaxAge(24 * 60 * 60);
+        }
+        response.addCookie(tokenCookie);
 
         if (isJson) {
             sendJsonResponse(response, "success", "Đăng nhập tài khoản thành công!");

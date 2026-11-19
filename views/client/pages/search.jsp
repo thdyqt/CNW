@@ -9,6 +9,7 @@
         <h2 class="title">Kết quả tìm kiếm</h2>
         <div class="inner-wrap">
             <c:forEach var="item" items="${tourList}">
+                <c:set var="item" value="${item}" scope="request" />
                 <jsp:include page="../mixins/product-item.jsp" />
             </c:forEach>
         </div>

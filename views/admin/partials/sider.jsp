@@ -7,7 +7,7 @@
 
 <nav class="sider">
     <ul class="inner-menu">
-        <c:if test="${empty loggedInAdmin || empty loggedInAdmin.permissions || fn:contains(loggedInAdmin.permissions, 'dashboard-view')}">
+        <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('dashboard-view')}">
             <li>
                 <a href="${pageContext.request.contextPath}/${pathAdmin}/dashboard" class="${fn:contains(currentUri, 'dashboard') ? 'active' : ''}">
                     <i class="fa-solid fa-gauge-high"></i>
@@ -15,7 +15,7 @@
                 </a>
             </li>
         </c:if>
-        <c:if test="${empty loggedInAdmin || empty loggedInAdmin.permissions || fn:contains(loggedInAdmin.permissions, 'category-view')}">
+        <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('category-view')}">
             <li>
                 <a href="${pageContext.request.contextPath}/${pathAdmin}/category/list" class="${fn:contains(currentUri, 'category') ? 'active' : ''}">
                     <i class="fa-solid fa-table-cells-large"></i>
@@ -23,7 +23,7 @@
                 </a>
             </li>
         </c:if>
-        <c:if test="${empty loggedInAdmin || empty loggedInAdmin.permissions || fn:contains(loggedInAdmin.permissions, 'tour-view')}">
+        <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('tour-view')}">
             <li>
                 <a href="${pageContext.request.contextPath}/${pathAdmin}/tour/list" class="${fn:contains(currentUri, 'tour') ? 'active' : ''}">
                     <i class="fa-solid fa-table-cells-large"></i>
@@ -31,33 +31,41 @@
                 </a>
             </li>
         </c:if>
-        <li>
-            <a href="${pageContext.request.contextPath}/${pathAdmin}/order/list" class="${fn:contains(currentUri, 'order') ? 'active' : ''}">
-                <i class="fa-solid fa-list-check"></i>
-                Quản lý đơn hàng
-            </a>
-        </li>
-        <li>
-            <a href="${pageContext.request.contextPath}/${pathAdmin}/user/list" class="${fn:contains(currentUri, 'user') || fn:contains(currentUri, 'customer') ? 'active' : ''}">
-                <i class="fa-solid fa-user"></i>
-                Quản lý người dùng
-            </a>
-        </li>
-        <li>
-            <a href="${pageContext.request.contextPath}/${pathAdmin}/contact/list" class="${fn:contains(currentUri, 'contact') ? 'active' : ''}">
-                <i class="fa-solid fa-user-group"></i>
-                Thông tin liên hệ
-            </a>
-        </li>
+        <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('order-view')}">
+            <li>
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/order/list" class="${fn:contains(currentUri, 'order') ? 'active' : ''}">
+                    <i class="fa-solid fa-list-check"></i>
+                    Quản lý đơn hàng
+                </a>
+            </li>
+        </c:if>
+        <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('user-view')}">
+            <li>
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/user/list" class="${fn:contains(currentUri, 'user') || fn:contains(currentUri, 'customer') ? 'active' : ''}">
+                    <i class="fa-solid fa-user"></i>
+                    Quản lý người dùng
+                </a>
+            </li>
+        </c:if>
+        <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('contact-view')}">
+            <li>
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/contact/list" class="${fn:contains(currentUri, 'contact') ? 'active' : ''}">
+                    <i class="fa-solid fa-user-group"></i>
+                    Thông tin liên hệ
+                </a>
+            </li>
+        </c:if>
     </ul>
     <hr />
     <ul class="inner-menu">
-        <li>
-            <a href="${pageContext.request.contextPath}/${pathAdmin}/setting/list" class="${fn:contains(currentUri, 'setting') ? 'active' : ''}">
-                <i class="fa-solid fa-gear"></i>
-                Cài đặt chung
-            </a>
-        </li>
+        <c:if test="${not empty loggedInAdmin and (loggedInAdmin.hasPermission('setting-view') or loggedInAdmin.hasPermission('role-view') or loggedInAdmin.hasPermission('account-view'))}">
+            <li>
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/setting/list" class="${fn:contains(currentUri, 'setting') ? 'active' : ''}">
+                    <i class="fa-solid fa-gear"></i>
+                    Cài đặt chung
+                </a>
+            </li>
+        </c:if>
         <li>
             <a href="${pageContext.request.contextPath}/${pathAdmin}/profile/edit" class="${fn:contains(currentUri, 'profile') ? 'active' : ''}">
                 <i class="fa-solid fa-user-gear"></i>

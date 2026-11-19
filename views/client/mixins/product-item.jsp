@@ -1,11 +1,22 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<fmt:setLocale value="vi_VN" />
 
 <div class="product-item">
     <div class="inner-image">
         <a href="${pageContext.request.contextPath}/tour/detail/${item.slug}">
-            <img alt="${item.name}" src="${item.avatar}" />
+            <c:choose>
+                <c:when test="${item.avatar.startsWith('http')}">
+                    <img alt="${item.name}" src="${item.avatar}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/Product-1.jpg';" />
+                </c:when>
+                <c:when test="${item.avatar.startsWith('/')}">
+                    <img alt="${item.name}" src="${pageContext.request.contextPath}${item.avatar}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/Product-1.jpg';" />
+                </c:when>
+                <c:otherwise>
+                    <img alt="${item.name}" src="${pageContext.request.contextPath}/${item.avatar}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/Product-1.jpg';" />
+                </c:otherwise>
+            </c:choose>
         </a>
     </div>
     <div class="inner-discount">
@@ -19,12 +30,12 @@
         <div class="inner-prices">
             <c:if test="${item.discount > 0}">
                 <div class="inner-old-price">
-                    <fmt:formatNumber value="${item.priceAdult}" pattern="#,###" />
+                    <fmt:formatNumber value="${item.priceAdult}" type="number" groupingUsed="true" />
                     <span class="unit">đ</span>
                 </div>
             </c:if>
             <div class="inner-new-price">
-                <fmt:formatNumber value="${item.priceNewAdult}" pattern="#,###" />
+                <fmt:formatNumber value="${item.priceNewAdult}" type="number" groupingUsed="true" />
                 <span class="unit">đ</span>
             </div>
         </div>

@@ -34,8 +34,9 @@
         <div class="inner-group">
             <label class="inner-label" for="status">Trạng thái</label>
             <select id="status" name="status">
-                <option value="active">Hoạt động</option>
-                <option value="inactive">Dừng hoạt động</option>
+                <option value="initial">Khởi tạo</option>
+                <option value="active" selected>Hoạt động</option>
+                <option value="inactive">Tạm dừng</option>
             </select>
         </div>
         <div class="inner-group inner-two-col">

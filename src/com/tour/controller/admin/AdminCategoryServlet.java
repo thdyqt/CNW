@@ -86,7 +86,37 @@ public class AdminCategoryServlet extends HttpServlet {
                 }
                 trashList = filteredTrash;
             }
-            request.setAttribute("categoryTrashList", trashList);
+
+            int page = 1;
+            String pageStr = request.getParameter("page");
+            if (pageStr != null && !pageStr.trim().isEmpty()) {
+                try {
+                    page = Math.max(1, Integer.parseInt(pageStr.trim()));
+                } catch (Exception ignored) {}
+            }
+
+            int limit = 10;
+            int total = trashList.size();
+            int totalPages = (int) Math.ceil((double) total / limit);
+            if (totalPages == 0) totalPages = 1;
+            if (page > totalPages) page = totalPages;
+
+            int start = total > 0 ? (page - 1) * limit + 1 : 0;
+            int end = Math.min(page * limit, total);
+
+            Map<String, Object> pagination = new HashMap<>();
+            pagination.put("currentPage", page);
+            pagination.put("totalPages", totalPages);
+            pagination.put("total", total);
+            pagination.put("start", start);
+            pagination.put("end", end);
+
+            int fromIndex = total > 0 ? (page - 1) * limit : 0;
+            int toIndex = Math.min(fromIndex + limit, total);
+            List<Category> pagedTrash = trashList.subList(fromIndex, toIndex);
+
+            request.setAttribute("categoryTrashList", pagedTrash);
+            request.setAttribute("pagination", pagination);
             request.setAttribute("pageTitle", "Thùng rác danh mục");
             request.getRequestDispatcher("/views/admin/pages/category-trash.jsp").forward(request, response);
             return;
@@ -158,7 +188,36 @@ public class AdminCategoryServlet extends HttpServlet {
             if (match) filtered.add(c);
         }
 
-        request.setAttribute("categoryList", filtered);
+        int page = 1;
+        String pageStr = request.getParameter("page");
+        if (pageStr != null && !pageStr.trim().isEmpty()) {
+            try {
+                page = Math.max(1, Integer.parseInt(pageStr.trim()));
+            } catch (Exception ignored) {}
+        }
+
+        int limit = 10;
+        int total = filtered.size();
+        int totalPages = (int) Math.ceil((double) total / limit);
+        if (totalPages == 0) totalPages = 1;
+        if (page > totalPages) page = totalPages;
+
+        int start = total > 0 ? (page - 1) * limit + 1 : 0;
+        int end = Math.min(page * limit, total);
+
+        Map<String, Object> pagination = new HashMap<>();
+        pagination.put("currentPage", page);
+        pagination.put("totalPages", totalPages);
+        pagination.put("total", total);
+        pagination.put("start", start);
+        pagination.put("end", end);
+
+        int fromIndex = total > 0 ? (page - 1) * limit : 0;
+        int toIndex = Math.min(fromIndex + limit, total);
+        List<Category> pagedCategories = filtered.subList(fromIndex, toIndex);
+
+        request.setAttribute("categoryList", pagedCategories);
+        request.setAttribute("pagination", pagination);
         request.setAttribute("pageTitle", "Quản lý danh mục");
         request.getRequestDispatcher("/views/admin/pages/category-list.jsp").forward(request, response);
     }

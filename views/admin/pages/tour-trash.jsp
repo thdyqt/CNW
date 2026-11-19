@@ -123,4 +123,16 @@
     </div>
 </div>
 
+<!-- Section-7: Phân trang -->
+<div class="section-7" style="display: flex; align-items: center; justify-content: flex-start; margin-top: 20px;">
+    <span class="inner-label" style="font-size: 14px; font-weight: 600; color: #202224c2; margin-right: 15px;">
+        Hiển thị ${pagination.start} - ${pagination.end} của ${pagination.total}
+    </span>
+    <select class="inner-pagination" pagination>
+        <c:forEach var="i" begin="1" end="${pagination.totalPages > 0 ? pagination.totalPages : 1}">
+            <option value="${i}" ${pagination.currentPage == i ? 'selected' : ''}>Trang ${i}</option>
+        </c:forEach>
+    </select>
+</div>
+
 <jsp:include page="../layouts/footer.jsp" />

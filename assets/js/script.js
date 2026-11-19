@@ -128,6 +128,7 @@ if (clockExpire) {
         else clearInterval(intervalClock);
     };
 
+    updateClock();
     const intervalClock = setInterval(updateClock, 1000);
 }
 

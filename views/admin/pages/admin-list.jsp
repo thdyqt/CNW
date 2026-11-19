@@ -2,6 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <jsp:include page="../layouts/header.jsp" />
+<c:set var="loggedInAdmin" value="${not empty sessionScope.account ? sessionScope.account : currentAccountAdmin}" />
 
 <h1 class="box-title">Tài khoản quản trị</h1>
 
@@ -15,6 +16,7 @@
         <div class="inner-item">
             <select filter-status>
                 <option value="">Trạng thái</option>
+                <option value="initial" ${param.status == 'initial' ? 'selected' : ''}>Khởi tạo</option>
                 <option value="active" ${param.status == 'active' ? 'selected' : ''}>Hoạt động</option>
                 <option value="inactive" ${param.status == 'inactive' ? 'selected' : ''}>Tạm dừng</option>
             </select>
@@ -59,9 +61,11 @@
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" placeholder="Tìm kiếm" search value="${param.keyword}" />
         </div>
-        <div class="inner-button-create">
-            <a href="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/create">+ Tạo mới</a>
-        </div>
+        <c:if test="${loggedInAdmin.hasPermission('account-create')}">
+            <div class="inner-button-create">
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/create">+ Tạo mới</a>
+            </div>
+        </c:if>
     </div>
 </div>
 
@@ -112,6 +116,9 @@
                                         <c:when test="${item.status == 'active'}">
                                             <span class="badge badge-green">Hoạt động</span>
                                         </c:when>
+                                        <c:when test="${item.status == 'initial'}">
+                                            <span class="badge badge-orange">Khởi tạo</span>
+                                        </c:when>
                                         <c:otherwise>
                                             <span class="badge badge-red">Tạm dừng</span>
                                         </c:otherwise>
@@ -119,12 +126,16 @@
                                 </td>
                                 <td class="inner-center">
                                     <div class="inner-buttons">
-                                        <a class="inner-edit" href="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/edit/${item.id}">
-                                            <i class="fa-regular fa-pen-to-square"></i>
-                                        </a>
-                                        <button class="inner-delete" button-delete data-api="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/delete/${item.id}">
-                                            <i class="fa-regular fa-trash-can"></i>
-                                        </button>
+                                        <c:if test="${loggedInAdmin.hasPermission('account-edit')}">
+                                            <a class="inner-edit" href="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/edit/${item.id}">
+                                                <i class="fa-regular fa-pen-to-square"></i>
+                                            </a>
+                                        </c:if>
+                                        <c:if test="${loggedInAdmin.hasPermission('account-delete')}">
+                                            <button class="inner-delete" button-delete data-api="${pageContext.request.contextPath}/${pathAdmin}/setting/account-admin/delete/${item.id}">
+                                                <i class="fa-regular fa-trash-can"></i>
+                                            </button>
+                                        </c:if>
                                     </div>
                                 </td>
                             </tr>

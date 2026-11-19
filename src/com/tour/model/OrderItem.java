@@ -38,7 +38,12 @@ public class OrderItem {
     public String getSlug() { return slug; }
     public void setSlug(String slug) { this.slug = slug; }
 
-    public String getAvatar() { return avatar; }
+    public String getAvatar() { 
+        if (avatar != null && !avatar.trim().isEmpty()) {
+            return avatar;
+        }
+        return "/admin/assets/images/Tour-Icon.jpg"; 
+    }
     public void setAvatar(String avatar) { this.avatar = avatar; }
 
     public int getQuantityAdult() { return quantityAdult; }
@@ -58,6 +63,18 @@ public class OrderItem {
 
     public double getPriceNewBaby() { return priceNewBaby; }
     public void setPriceNewBaby(double priceNewBaby) { this.priceNewBaby = priceNewBaby; }
+
+    public String getPriceNewAdultFormatted() {
+        return new java.text.DecimalFormat("#,###", new java.text.DecimalFormatSymbols(new java.util.Locale("vi", "VN"))).format(priceNewAdult);
+    }
+
+    public String getPriceNewChildrenFormatted() {
+        return new java.text.DecimalFormat("#,###", new java.text.DecimalFormatSymbols(new java.util.Locale("vi", "VN"))).format(priceNewChildren);
+    }
+
+    public String getPriceNewBabyFormatted() {
+        return new java.text.DecimalFormat("#,###", new java.text.DecimalFormatSymbols(new java.util.Locale("vi", "VN"))).format(priceNewBaby);
+    }
 
     public int getLocationFrom() { return locationFrom; }
     public void setLocationFrom(int locationFrom) { this.locationFrom = locationFrom; }

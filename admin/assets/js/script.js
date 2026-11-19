@@ -142,19 +142,32 @@ const revenueChart = document.querySelector("#revenue-chart");
 
 let currentChart = null;
 const drawChart = (now) => {
-    // Lấy tháng và năm hiện tại
-    const currentMonth = now.getMonth() + 1; // Lấy từ 0 - 11
-    const currentYear = now.getFullYear();
+    let currentYear, currentMonth;
+    if (now instanceof Date) {
+        currentYear = now.getFullYear();
+        currentMonth = now.getMonth() + 1;
+    } else if (typeof now === "string" && now.includes("-")) {
+        const parts = now.split("-");
+        currentYear = parseInt(parts[0], 10);
+        currentMonth = parseInt(parts[1], 10);
+    } else {
+        const d = new Date();
+        currentYear = d.getFullYear();
+        currentMonth = d.getMonth() + 1;
+    }
 
     // Lấy tháng trước
-    const previousMonthDate = new Date(currentYear, now.getMonth() - 1, 1);
-    const previousMonth = previousMonthDate.getMonth() + 1; // Lấy từ 0 - 11
-    const previousYear = previousMonthDate.getFullYear();
+    let previousMonth = currentMonth - 1;
+    let previousYear = currentYear;
+    if (previousMonth === 0) {
+        previousMonth = 12;
+        previousYear -= 1;
+    }
 
     // Lấy tổng số ngày
     const daysInMonthCurrent = new Date(currentYear, currentMonth, 0).getDate();
     const daysInMonthPrevious = new Date(previousYear, previousMonth, 0).getDate();
-    const days = daysInMonthCurrent > daysInMonthPrevious ? daysInMonthCurrent : daysInMonthPrevious;
+    const days = Math.max(daysInMonthCurrent, daysInMonthPrevious);
     const arrayDay = [];
     for (let i = 1; i <= days; i++) {
         arrayDay.push(i);
@@ -175,15 +188,24 @@ const drawChart = (now) => {
         },
         body: JSON.stringify(dataFinal)
     })
-        .then (res => res.json())
-        .then (data => {
-            if(data.code == "error") {
+        .then(res => res.json())
+        .then(data => {
+            if (data.code === "error") {
                 showAlert(data.message, "error");
-            }
-            else if (data.code == "success") {
+            } else if (data.code === "success") {
                 if (currentChart) {
                     currentChart.destroy();
                 }
+
+                const ctx = revenueChart.getContext('2d');
+
+                const gradientCurrent = ctx.createLinearGradient(0, 0, 0, 300);
+                gradientCurrent.addColorStop(0, 'rgba(54, 161, 234, 0.28)');
+                gradientCurrent.addColorStop(1, 'rgba(54, 161, 234, 0.0)');
+
+                const gradientPrev = ctx.createLinearGradient(0, 0, 0, 300);
+                gradientPrev.addColorStop(0, 'rgba(254, 99, 131, 0.22)');
+                gradientPrev.addColorStop(1, 'rgba(254, 99, 131, 0.0)');
 
                 currentChart = new Chart(revenueChart, {
                     type: 'line',
@@ -191,59 +213,140 @@ const drawChart = (now) => {
                         labels: arrayDay,
                         datasets: [
                             {
-                            label: `Tháng ${currentMonth}/${currentYear}`,
-                            data: data.dataCurrentMonth,
-                            borderColor: "#36A1EA",
-                            borderWidth: 1.5
+                                label: `Tháng ${currentMonth}/${currentYear}`,
+                                data: data.dataCurrentMonth,
+                                borderColor: "#36A1EA",
+                                backgroundColor: gradientCurrent,
+                                borderWidth: 2.5,
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 3,
+                                pointHoverRadius: 6,
+                                pointBackgroundColor: '#FFFFFF',
+                                pointBorderColor: '#36A1EA',
+                                pointBorderWidth: 2
                             },
                             {
-                            label: `Tháng ${previousMonth}/${previousYear}`,
-                            data: data.dataPreviousMonth,
-                            borderColor: " #FE6383",
-                            borderWidth: 1.5
+                                label: `Tháng ${previousMonth}/${previousYear}`,
+                                data: data.dataPreviousMonth,
+                                borderColor: "#FE6383",
+                                backgroundColor: gradientPrev,
+                                borderWidth: 2,
+                                fill: true,
+                                tension: 0.35,
+                                pointRadius: 3,
+                                pointHoverRadius: 6,
+                                pointBackgroundColor: '#FFFFFF',
+                                pointBorderColor: '#FE6383',
+                                pointBorderWidth: 2
                             }
                         ]
                     },
                     options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: {
+                            intersect: false,
+                            mode: 'index'
+                        },
                         plugins: {
                             legend: {
                                 position: 'bottom',
-                            },
-                        },
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Ngày'
+                                labels: {
+                                    usePointStyle: true,
+                                    padding: 20,
+                                    font: {
+                                        size: 13,
+                                        weight: '600'
+                                    }
                                 }
                             },
-                            y: {
-                                title: {
-                                    display: true,
-                                    text: 'Doanh thu (VND)'
+                            tooltip: {
+                                backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                padding: 12,
+                                titleFont: {
+                                    size: 13
+                                },
+                                bodyFont: {
+                                    size: 13
+                                },
+                                callbacks: {
+                                    title: function(items) {
+                                        if (items.length > 0) {
+                                            return `Ngày ${items[0].label}`;
+                                        }
+                                        return '';
+                                    },
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) {
+                                            label += ': ';
+                                        }
+                                        if (context.parsed.y !== null) {
+                                            label += new Intl.NumberFormat('vi-VN').format(context.parsed.y) + ' đ';
+                                        }
+                                        return label;
+                                    }
                                 }
                             }
                         },
-                        maintainAspectRatio: false
+                        scales: {
+                            x: {
+                                grid: {
+                                    display: false
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Ngày trong tháng',
+                                    font: {
+                                        weight: '600'
+                                    }
+                                }
+                            },
+                            y: {
+                                beginAtZero: true,
+                                grid: {
+                                    color: '#F1F4F9'
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Doanh thu (VND)',
+                                    font: {
+                                        weight: '600'
+                                    }
+                                },
+                                ticks: {
+                                    callback: function(value) {
+                                        if (value >= 1000000) {
+                                            return (value / 1000000).toLocaleString('vi-VN') + ' tr';
+                                        }
+                                        return value.toLocaleString('vi-VN') + ' đ';
+                                    }
+                                }
+                            }
+                        }
                     }
-                })
+                });
             }
+        })
+        .catch(err => {
+            console.error("Lỗi tải biểu đồ doanh thu:", err);
         });
-}
+};
 
 if (revenueChart) {
-    // Lấy ngày hôm nay
-    const now = new Date();
-    drawChart(now);
-
     const input = document.querySelector(".inner-filler input");
+    const now = new Date();
     if (input) {
+        const monthStr = String(now.getMonth() + 1).padStart(2, "0");
+        input.value = `${now.getFullYear()}-${monthStr}`;
         input.addEventListener("change", () => {
-            const value = input.value;
-            const date = new Date(value);
-            drawChart(date);
-        })
+            if (input.value) {
+                drawChart(input.value);
+            }
+        });
     }
+    drawChart(now);
 }
 
 // Category Create
@@ -1582,6 +1685,52 @@ if (filterRole) {
     }
 }
 
+// Filter Payment Method
+const filterPaymentMethod = document.querySelector("[filter-payment-method]");
+if (filterPaymentMethod && !filterPaymentMethod.dataset.initialized) {
+    filterPaymentMethod.dataset.initialized = "true";
+    filterPaymentMethod.addEventListener("change", () => {
+        const url = new URL(window.location.href);
+        const value = filterPaymentMethod.value;
+        if (value) {
+            url.searchParams.set("paymentMethod", value);
+        } else {
+            url.searchParams.delete("paymentMethod");
+        }
+        url.searchParams.delete("page");
+        window.location.href = url.href;
+    });
+
+    const url = new URL(window.location.href);
+    const valueCurrent = url.searchParams.get("paymentMethod");
+    if (valueCurrent) {
+        filterPaymentMethod.value = valueCurrent;
+    }
+}
+
+// Filter Payment Status
+const filterPaymentStatus = document.querySelector("[filter-payment-status]");
+if (filterPaymentStatus && !filterPaymentStatus.dataset.initialized) {
+    filterPaymentStatus.dataset.initialized = "true";
+    filterPaymentStatus.addEventListener("change", () => {
+        const url = new URL(window.location.href);
+        const value = filterPaymentStatus.value;
+        if (value) {
+            url.searchParams.set("paymentStatus", value);
+        } else {
+            url.searchParams.delete("paymentStatus");
+        }
+        url.searchParams.delete("page");
+        window.location.href = url.href;
+    });
+
+    const url = new URL(window.location.href);
+    const valueCurrent = url.searchParams.get("paymentStatus");
+    if (valueCurrent) {
+        filterPaymentStatus.value = valueCurrent;
+    }
+}
+
 // Reset Filter
 const filterReset = document.querySelector("[filter-reset]");
 if (filterReset) {
@@ -1681,23 +1830,23 @@ if (changeMulti) {
 // Search
 const inputSearch = document.querySelector("[search]");
 if (inputSearch) {
-    const url = new URL(window.location.href);
-
     // Lắng nghe bấm enter thì tìm kiếm
     inputSearch.addEventListener("keyup", event => {
-        if(event.code == "Enter") {
+        if (event.code == "Enter") {
+            const url = new URL(window.location.href);
             const value = inputSearch.value;
             if (value) {
                 url.searchParams.set("keyword", value);
-            }
-            else {
+            } else {
                 url.searchParams.delete("keyword");
             }
+            url.searchParams.delete("page");
             window.location.href = url.href;
         }
-    })
+    });
 
     // Hiển thị lựa chọn mặc định
+    const url = new URL(window.location.href);
     const valueCurrent = url.searchParams.get("keyword");
     if (valueCurrent) {
         inputSearch.value = valueCurrent;
@@ -1707,20 +1856,19 @@ if (inputSearch) {
 // Pagination
 const pagination = document.querySelector("[pagination]");
 if (pagination) {
-    const url = new URL(window.location.href);
-
-    pagination.addEventListener("change", event => {
+    pagination.addEventListener("change", () => {
+        const url = new URL(window.location.href);
         const value = pagination.value;
-        if (pagination) {
+        if (value) {
             url.searchParams.set("page", value);
-        }
-        else {
+        } else {
             url.searchParams.delete("page");
         }
         window.location.href = url.href;
-    })
+    });
 
     // Hiển thị lựa chọn mặc định
+    const url = new URL(window.location.href);
     const valueCurrent = url.searchParams.get("page");
     if (valueCurrent) {
         pagination.value = valueCurrent;

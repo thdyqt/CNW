@@ -14,34 +14,15 @@ public class Account {
     private int roleId;
     private String position = "Giám đốc";
     private String status;
+    private String token;
     private String password;
     private List<String> permissions = new ArrayList<>();
 
     public Account() {
-        this.id = 2;
-        this.fullName = "Phan Thanh Duy";
-        this.email = "ptd.ntn2907@gmail.com";
-        this.phone = "0905383132";
-        this.position = "Giám đốc";
-        this.avatar = "https://res.cloudinary.com/r5hwa2cj/image/upload/v1791638065/hdjdks9vbgdmjveyu4kq.jpg";
-        this.roleName = "Quản trị viên";
-        this.roleId = 1;
-        this.status = "active";
-        this.permissions = Arrays.asList(
-            "dashboard-view",
-            "category-view", "category-create", "category-edit", "category-delete",
-            "tour-view", "tour-create", "tour-edit", "tour-delete", "tour-trash",
-            "order-view", "order-edit",
-            "user-view", "user-create", "user-edit", "user-delete",
-            "contact-view", "contact-delete",
-            "setting-view", "setting-edit",
-            "role-view", "role-create", "role-edit", "role-delete",
-            "account-view", "account-create", "account-edit", "account-delete"
-        );
+        this.permissions = new ArrayList<>();
     }
 
     public Account(int id, String fullName, String email, String phone, String avatar, String roleName, String status) {
-        this();
         this.id = id;
         this.fullName = fullName;
         this.email = email;
@@ -49,6 +30,7 @@ public class Account {
         this.avatar = avatar;
         this.roleName = roleName;
         this.status = status;
+        this.permissions = new ArrayList<>();
     }
 
     public int getId() { return id; }
@@ -79,13 +61,33 @@ public class Account {
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
 
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
+
     public String getPassword() { return password; }
     public void setPassword(String password) { this.password = password; }
 
-    public List<String> getPermissions() { return permissions; }
-    public void setPermissions(List<String> permissions) { this.permissions = permissions; }
+    public List<String> getPermissions() { 
+        return permissions != null ? permissions : new ArrayList<>(); 
+    }
+    public void setPermissions(List<String> permissions) { 
+        this.permissions = permissions != null ? permissions : new ArrayList<>(); 
+    }
 
     public boolean hasPermission(String perm) {
-        return permissions.contains(perm);
+        if (perm == null || perm.trim().isEmpty()) {
+            return true;
+        }
+        // Quản trị viên (roleId == 1 hoặc tên Quản trị viên) có đầy đủ toàn bộ quyền
+        if (roleId == 1 || "Quản trị viên".equalsIgnoreCase(roleName)) {
+            return true;
+        }
+        if (permissions == null || permissions.isEmpty()) {
+            return false;
+        }
+        if (permissions.contains("*") || permissions.contains("all")) {
+            return true;
+        }
+        return permissions.contains(perm.trim());
     }
 }

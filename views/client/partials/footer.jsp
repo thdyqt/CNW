@@ -29,10 +29,10 @@
             </nav>
         </div>
         <div class="inner-bottom">
-            <div class="inner-copyright">© 2024 28Tech. All rights reserved.</div>
+            <div class="inner-copyright">© 2026 DUTTech. All rights reserved.</div>
             <div class="inner-logo">
                 <a href="${pageContext.request.contextPath}/">
-                    <img alt="Logo" src="${pageContext.request.contextPath}/assets/images/Logo.svg" />
+                    <img alt="Logo" src="${settingWebsiteInfo.logo}" />
                 </a>
             </div>
             <nav class="inner-links">
