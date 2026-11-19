@@ -1485,17 +1485,26 @@ if (sider) {
 // Logout
 const buttonLogout = document.querySelector(".sider .inner-logout");
 if (buttonLogout) {
-    buttonLogout.addEventListener("click", () => {
-        fetch (`/${pathAdmin}/account/logout`, {
-            method: "POST"
+    buttonLogout.addEventListener("click", (e) => {
+        e.preventDefault();
+        fetch(`/${pathAdmin}/account/logout`, {
+            method: "POST",
+            headers: {
+                "Accept": "application/json"
+            }
         })
-            .then (res => res.json())
-            .then (data => {
-                if (data.code == "success") {
-                    window.location.href = `/${pathAdmin}/account/login`
+            .then(res => res.json())
+            .then(data => {
+                if (data.code === "success") {
+                    window.location.href = `/${pathAdmin}/account/login`;
+                } else {
+                    window.location.href = `/${pathAdmin}/account/logout`;
                 }
             })
-    })
+            .catch(() => {
+                window.location.href = `/${pathAdmin}/account/logout`;
+            });
+    });
 }
 
 // Alert
