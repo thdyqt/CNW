@@ -18,42 +18,62 @@
                 </c:otherwise>
             </c:choose>
         </a>
-    </div>
-    <div class="inner-discount">
-        <i class="fa-solid fa-bolt"></i>
-        <div class="inner-discount-percent">GIẢM -${item.discount}%</div>
+        <c:if test="${item.discount > 0}">
+            <div class="inner-discount">
+                <i class="fa-solid fa-bolt"></i>
+                <div class="inner-discount-percent">GIẢM -${item.discount}%</div>
+            </div>
+        </c:if>
+        <div class="inner-loc-badge">
+            <i class="fa-solid fa-location-dot"></i> Tour Trọn Gói
+        </div>
     </div>
     <div class="inner-content">
         <h3 class="inner-title">
-            <a href="${pageContext.request.contextPath}/tour/detail/${item.slug}">${item.name}</a>
+            <a href="${pageContext.request.contextPath}/tour/detail/${item.slug}" title="${item.name}">${item.name}</a>
         </h3>
-        <div class="inner-prices">
-            <c:if test="${item.discount > 0}">
-                <div class="inner-old-price">
-                    <fmt:formatNumber value="${item.priceAdult}" type="number" groupingUsed="true" />
-                    <span class="unit">đ</span>
-                </div>
-            </c:if>
-            <div class="inner-new-price">
-                <fmt:formatNumber value="${item.priceNewAdult}" type="number" groupingUsed="true" />
-                <span class="unit">đ</span>
-            </div>
-        </div>
         <div class="inner-desc">
             <div class="inner-desc-item">
-                Ngày Khởi Hành: 
-                <b>${item.departureDateFormatted}</b>
+                <i class="fa-regular fa-calendar-check"></i>
+                <span>Khởi hành: <b>${item.departureDateFormatted}</b></span>
             </div>
             <div class="inner-desc-item">
-                Thời Gian: 
-                <b>${item.time}</b>
+                <i class="fa-regular fa-clock"></i>
+                <span>Thời gian: <b>${item.time}</b></span>
             </div>
         </div>
         <div class="inner-meta">
+            <div class="inner-rating">
+                <div class="inner-stars">
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div class="inner-number">5.0</div>
+            </div>
             <div class="inner-stock">
-                <div class="inner-label">Số chỗ còn:</div>
+                <div class="inner-label">Còn lại:</div>
                 <div class="inner-number">${item.stockAdult}</div>
             </div>
+        </div>
+        <div class="inner-footer-bar">
+            <div class="inner-prices">
+                <c:if test="${item.discount > 0}">
+                    <div class="inner-old-price">
+                        <fmt:formatNumber value="${item.priceAdult}" type="number" groupingUsed="true" />
+                        <span class="unit">đ</span>
+                    </div>
+                </c:if>
+                <div class="inner-new-price">
+                    <fmt:formatNumber value="${item.priceNewAdult}" type="number" groupingUsed="true" />
+                    <span class="unit">đ</span>
+                </div>
+            </div>
+            <a class="inner-detail-btn" href="${pageContext.request.contextPath}/tour/detail/${item.slug}" title="Xem chi tiết">
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
         </div>
     </div>
 </div>

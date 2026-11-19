@@ -31,21 +31,26 @@ if (buttonMenuMobile) {
 const boxLocationSection1 = document.querySelector(".section-1 .inner-location");
 if (boxLocationSection1) {
     // Ẩn hiện box suggest
-    const input = boxLocationSection1.querySelector(".inner-input")
+    const input = boxLocationSection1.querySelector(".inner-input");
     input.addEventListener("focus", () => {
         boxLocationSection1.classList.add("active");
     });
 
-    input.addEventListener("blur", () => {
-        boxLocationSection1.classList.remove("active");
-    })
+    document.addEventListener("click", (event) => {
+        if (!boxLocationSection1.contains(event.target)) {
+            boxLocationSection1.classList.remove("active");
+        }
+    });
 
     // Sự kiện click vào từng item
     const listItem = boxLocationSection1.querySelectorAll(".inner-suggest-list .inner-item");
     listItem.forEach(item => {
-        item.addEventListener("mousedown", () => {
+        item.addEventListener("mousedown", (e) => {
+            e.preventDefault();
             const title = item.querySelector(".inner-item-title").innerHTML;
             input.value = title.trim();
+            boxLocationSection1.classList.remove("active");
+            input.blur();
         });
     });
 }
@@ -267,7 +272,8 @@ if (emailForm) {
             },
         ])
         .onSuccess(event => {
-            const email = event.target.email.value;
+            const emailInput = document.querySelector("#email-input");
+            const email = emailInput ? emailInput.value.trim() : (event.target.email ? event.target.email.value.trim() : "");
 
             const dataFinal = {
                 email: email,
@@ -282,11 +288,71 @@ if (emailForm) {
             })
                 .then(res => res.json())
                 .then(data => {
-                    if (data.code == "error") {
-                        alert(data.message);
+                    if (data.code === "success") {
+                        if (typeof Swal !== "undefined") {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Đăng ký thành công!",
+                                text: data.message || "Cảm ơn bạn đã đăng ký nhận thông tin từ DUT Travel. Chúng tôi sẽ gửi những chương trình hấp dẫn nhất đến bạn!",
+                                confirmButtonColor: "#2563EB",
+                                confirmButtonText: "Tuyệt vời",
+                                customClass: {
+                                    popup: "client-swal-modal"
+                                }
+                            });
+                        } else {
+                            showAlert(data.message || "Đăng ký thành công!", "success");
+                        }
+                        if (emailInput) {
+                            emailInput.value = "";
+                        }
+                    } else if (data.code === "exist" || data.code === "warning" || (data.message && data.message.includes("đã được đăng ký"))) {
+                        if (typeof Swal !== "undefined") {
+                            Swal.fire({
+                                icon: "info",
+                                title: "Email đã tồn tại!",
+                                text: data.message || "Email của bạn đã được đăng ký nhận thông tin trước đó rồi. Đừng quên kiểm tra hộp thư nhé!",
+                                confirmButtonColor: "#2563EB",
+                                confirmButtonText: "Đã hiểu",
+                                customClass: {
+                                    popup: "client-swal-modal"
+                                }
+                            });
+                        } else {
+                            showAlert(data.message, "warning");
+                        }
+                    } else {
+                        if (typeof Swal !== "undefined") {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Chưa thể đăng ký!",
+                                text: data.message || "Có lỗi xảy ra, vui lòng thử lại sau.",
+                                confirmButtonColor: "#2563EB",
+                                confirmButtonText: "Đóng",
+                                customClass: {
+                                    popup: "client-swal-modal"
+                                }
+                            });
+                        } else {
+                            showAlert(data.message || "Đã xảy ra lỗi!", "error");
+                        }
                     }
-                    else if (data.code == "success") {
-                        window.location.reload();
+                })
+                .catch(err => {
+                    console.error("Lỗi gửi email liên hệ:", err);
+                    if (typeof Swal !== "undefined") {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Lỗi kết nối!",
+                            text: "Không thể gửi thông tin lúc này. Vui lòng kiểm tra lại mạng hoặc thử lại sau!",
+                            confirmButtonColor: "#2563EB",
+                            confirmButtonText: "Đóng",
+                            customClass: {
+                                popup: "client-swal-modal"
+                            }
+                        });
+                    } else {
+                        showAlert("Không thể gửi thông tin lúc này. Vui lòng thử lại sau!", "error");
                     }
                 });
         })
@@ -380,7 +446,17 @@ if (orderForm) {
                 .then(res => res.json())
                 .then(data => {
                     if (data.code == "error") {
-                        alert(data.message);
+                        if (typeof Swal !== "undefined") {
+                            Swal.fire({
+                                icon: "error",
+                                title: "Thông báo",
+                                text: data.message || "Đã xảy ra lỗi khi tạo đơn hàng!",
+                                confirmButtonColor: "#2563EB",
+                                confirmButtonText: "Đóng"
+                            });
+                        } else {
+                            showAlert(data.message || "Đã xảy ra lỗi!", "error");
+                        }
                     }
                     else if (data.code == "success") {
                         // Cập nhật lại giỏ hàng
@@ -420,13 +496,37 @@ if (orderForm) {
 }
 
 // Alert
+function showAlert(message, type = "success", duration = 4000) {
+    if (!message) return;
+    const existing = document.querySelector(".alert");
+    if (existing) existing.remove();
+
+    const div = document.createElement("div");
+    div.className = `alert alert-${type}`;
+    div.setAttribute("alert-time", duration);
+    let iconClass = "fa-circle-check";
+    if (type === "error" || type === "danger") iconClass = "fa-circle-xmark";
+    else if (type === "warning") iconClass = "fa-triangle-exclamation";
+    else if (type === "info") iconClass = "fa-circle-info";
+
+    div.innerHTML = `
+        <i class="fa-solid ${iconClass}"></i>
+        <span>${message}</span>
+        <span style="cursor:pointer;margin-left:8px;font-size:18px;opacity:0.7" onclick="this.parentElement.remove()">&times;</span>
+    `;
+    document.body.appendChild(div);
+    setTimeout(() => {
+        if (div.parentElement) div.remove();
+    }, duration);
+}
+
 const alertTime = document.querySelector("[alert-time]");
 if (alertTime) {
     let time = alertTime.getAttribute("alert-time");
     time = time ? parseInt(time) : 4000;
     setTimeout(() => {
         alertTime.remove();
-    }, time)
+    }, time);
 }
 
 // Box Filter
@@ -462,33 +562,31 @@ if (boxFilter) {
 // Form Search
 const formSearch = document.querySelector("[form-search]");
 if (formSearch) {
-    const url = new URL(`${window.location.origin}${CONTEXT_PATH}/search`);
-
     formSearch.addEventListener("submit", (event) => {
         event.preventDefault();
 
-        const locationTo = formSearch.locationTo.value;
+        const url = new URL(`${window.location.origin}${CONTEXT_PATH}/search`);
+
+        const locationTo = formSearch.locationTo ? formSearch.locationTo.value.trim() : "";
         if (locationTo) url.searchParams.set("locationTo", locationTo);
-        else url.searchParams.delete("locationTo");
 
-        const stockAdult = parseInt(formSearch.querySelector("[stock-adult]").innerHTML);
+        const stockAdultEl = formSearch.querySelector("[stock-adult]");
+        const stockAdult = stockAdultEl ? parseInt(stockAdultEl.innerHTML) : 0;
         if (stockAdult > 0) url.searchParams.set("stockAdult", stockAdult);
-        else url.searchParams.delete("stockAdult");
 
-        const stockChildren = parseInt(formSearch.querySelector("[stock-children]").innerHTML);
+        const stockChildrenEl = formSearch.querySelector("[stock-children]");
+        const stockChildren = stockChildrenEl ? parseInt(stockChildrenEl.innerHTML) : 0;
         if (stockChildren > 0) url.searchParams.set("stockChildren", stockChildren);
-        else url.searchParams.delete("stockChildren");
 
-        const stockBaby = parseInt(formSearch.querySelector("[stock-baby]").innerHTML);
+        const stockBabyEl = formSearch.querySelector("[stock-baby]");
+        const stockBaby = stockBabyEl ? parseInt(stockBabyEl.innerHTML) : 0;
         if (stockBaby > 0) url.searchParams.set("stockBaby", stockBaby);
-        else url.searchParams.delete("stockBaby");
 
-        const departureDate = formSearch.departureDate.value;
+        const departureDate = formSearch.departureDate ? formSearch.departureDate.value : "";
         if (departureDate) url.searchParams.set("departureDate", departureDate);
-        else url.searchParams.delete("departureDate");
 
         window.location.href = url.href;
-    })
+    });
 }
 
 // Box Tour Detail

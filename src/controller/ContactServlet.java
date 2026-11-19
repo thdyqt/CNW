@@ -39,18 +39,18 @@ public class ContactServlet extends HttpServlet {
 
             if (email.isEmpty()) {
                 respJson.put("code", "error");
-                respJson.put("message", "Vui lòng nhập email!");
+                respJson.put("message", "Vui lòng nhập địa chỉ email của bạn!");
             } else if (contactDAO.existEmail(email)) {
-                respJson.put("code", "error");
-                respJson.put("message", "Email của bạn đã được đăng ký!");
+                respJson.put("code", "exist");
+                respJson.put("message", "Email của bạn đã được đăng ký nhận thông tin trước đó rồi!");
             } else {
                 contactDAO.createContact(email);
                 respJson.put("code", "success");
-                respJson.put("message", "Đăng ký thành công!");
+                respJson.put("message", "Đăng ký nhận thông tin ưu đãi thành công! Cảm ơn bạn đã quan tâm.");
             }
         } catch (Exception e) {
             respJson.put("code", "error");
-            respJson.put("message", "Lỗi xử lý yêu cầu!");
+            respJson.put("message", "Có lỗi xảy ra trong quá trình xử lý, vui lòng thử lại sau!");
         }
 
         resp.getWriter().write(mapper.writeValueAsString(respJson));

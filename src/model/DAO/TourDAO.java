@@ -277,13 +277,32 @@ public class TourDAO {
                 List<Object> params = new ArrayList<>();
 
                 if (locationTo != null && !locationTo.trim().isEmpty()) {
-                    sql.append(" AND (name LIKE ? OR slug LIKE ?)");
-                    params.add("%" + locationTo.trim() + "%");
-                    params.add("%" + locationTo.trim() + "%");
+                    String raw = locationTo.trim();
+                    String normalized = raw.replace("–", "-").replace("—", "-");
+                    String[] tokens = normalized.split("[-/,]+");
+
+                    sql.append(" AND (");
+                    sql.append("(name LIKE ? OR slug LIKE ?)");
+                    params.add("%" + raw + "%");
+                    params.add("%" + raw + "%");
+
+                    for (String tok : tokens) {
+                        String t = tok.trim();
+                        if (!t.isEmpty() && !t.equalsIgnoreCase(raw)) {
+                            sql.append(" OR (name LIKE ? OR slug LIKE ?)");
+                            params.add("%" + t + "%");
+                            params.add("%" + t + "%");
+                        }
+                    }
+                    sql.append(")");
                 }
                 if (locationFrom != null && !locationFrom.trim().isEmpty()) {
                     sql.append(" AND locations LIKE ?");
                     params.add("%" + locationFrom.trim() + "%");
+                }
+                if (departureDate != null && !departureDate.trim().isEmpty()) {
+                    sql.append(" AND departure_date >= ?");
+                    params.add(departureDate.trim());
                 }
                 if (stockAdult != null && stockAdult > 0) {
                     sql.append(" AND stock_adult >= ?");
@@ -321,9 +340,6 @@ public class TourDAO {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }
-        if (list.isEmpty()) {
-            list = getDefaultMockTours();
         }
         return list;
     }
