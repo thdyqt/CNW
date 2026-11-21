@@ -10,4 +10,12 @@ public class CityBO {
     public List<City> getAllCities() {
         return cityDAO.getAllCities();
     }
+
+    public List<City> getCitiesByTourLocations(String locations) {
+        return cityDAO.getCitiesByTourLocations(locations);
+    }
+
+    public List<City> getCitiesWithTours() {
+        return cityDAO.getCitiesWithTours();
+    }
 }

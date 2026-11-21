@@ -85,5 +85,77 @@ public class CityDAO {
         }
         return null;
     }
+
+    public List<City> getCitiesByTourLocations(String locations) {
+        List<City> list = new ArrayList<>();
+        if (locations == null || locations.trim().isEmpty()) {
+            return list;
+        }
+
+        List<Integer> ids = new ArrayList<>();
+        for (String part : locations.replaceAll("[\\[\\]\"']", "").split(",")) {
+            try {
+                String trimmed = part.trim();
+                if (!trimmed.isEmpty()) {
+                    int id = Integer.parseInt(trimmed);
+                    if (!ids.contains(id)) {
+                        ids.add(id);
+                    }
+                }
+            } catch (Exception ignored) {}
+        }
+
+        if (ids.isEmpty()) {
+            return list;
+        }
+
+        Connection conn = DBContext.getConnection();
+        if (conn != null) {
+            try {
+                StringBuilder sql = new StringBuilder("SELECT * FROM cities WHERE id IN (");
+                for (int i = 0; i < ids.size(); i++) {
+                    sql.append(i > 0 ? ",?" : "?");
+                }
+                sql.append(") ORDER BY name ASC");
+                PreparedStatement ps = conn.prepareStatement(sql.toString());
+                for (int i = 0; i < ids.size(); i++) {
+                    ps.setInt(i + 1, ids.get(i));
+                }
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    list.add(new City(rs.getInt("id"), rs.getString("name")));
+                }
+                conn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return list;
+    }
+
+    public List<City> getCitiesWithTours() {
+        List<City> list = new ArrayList<>();
+        Connection conn = DBContext.getConnection();
+        if (conn != null) {
+            try {
+                String sql = "SELECT DISTINCT c.id, c.name FROM cities c "
+                           + "JOIN tours t ON (FIND_IN_SET(c.id, t.locations) > 0) "
+                           + "WHERE t.deleted = 0 AND t.status = 'active' "
+                           + "ORDER BY c.name ASC";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ResultSet rs = ps.executeQuery();
+                while (rs.next()) {
+                    list.add(new City(rs.getInt("id"), rs.getString("name")));
+                }
+                conn.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (list.isEmpty()) {
+            return getAllCities();
+        }
+        return list;
+    }
 }
 

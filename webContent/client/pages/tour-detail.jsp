@@ -86,7 +86,7 @@
                         <div class="inner-item">
                             <i class="fa-solid fa-ticket-simple"></i>
                             <span>Mã Tour: </span>
-                            <span class="inner-highlight">${not empty tourDetail.code ? tourDetail.code : '28T00001'}</span>
+                            <span class="inner-highlight">${not empty tourDetail.code ? tourDetail.code : 'DUT00001'}</span>
                         </div>
                         <div class="inner-item">
                             <i class="fa-solid fa-calendar-days"></i>
@@ -105,10 +105,22 @@
                         </div>
                     </div>
 
+                    <c:set var="isSoldOut" value="${tourDetail.stockAdult <= 0 && tourDetail.stockChildren <= 0 && tourDetail.stockBaby <= 0}" />
+
+                    <c:if test="${isSoldOut}">
+                        <div class="soldout-warning-card">
+                            <div class="soldout-badge-title">
+                                <i class="fa-solid fa-circle-exclamation"></i>
+                                <span>Tour này hiện đã hết chỗ</span>
+                            </div>
+                            <p>Các chỗ trống của tour này đã được đăng ký hết. Quý khách vui lòng liên hệ hotline <a href="tel:${settingWebsiteInfo.phone}">${not empty settingWebsiteInfo.phone ? settingWebsiteInfo.phone : '1900 6868'}</a> để nhận thông báo khi có suất trống phát sinh hoặc chọn tour tương tự.</p>
+                        </div>
+                    </c:if>
+
                     <div class="inner-form">
                         <div class="inner-group">
                             <label class="inner-label" for="location-from">Khởi Hành Tại:</label>
-                            <select id="location-from" location-from>
+                            <select id="location-from" location-from ${isSoldOut ? 'disabled' : ''}>
                                 <c:forEach var="item" items="${cityList}">
                                     <option value="${item.id}">${item.name}</option>
                                 </c:forEach>
@@ -120,10 +132,10 @@
                                 <div class="inner-item">
                                     <label class="inner-item-label" for="stockAdult">Người lớn:</label>
                                     <div class="inner-item-input">
-                                        <input id="stockAdult" min="0" max="${tourDetail.stockAdult}" value="1" name="stockAdult" type="number" input-stock-adult price="${tourDetail.priceNewAdult}" />
+                                        <input id="stockAdult" min="0" max="${tourDetail.stockAdult}" value="${isSoldOut ? 0 : (tourDetail.stockAdult > 0 ? 1 : 0)}" name="stockAdult" type="number" input-stock-adult price="${tourDetail.priceNewAdult}" ${isSoldOut ? 'disabled' : ''} />
                                     </div>
                                     <div class="inner-price">
-                                        <span stock-adult>1</span>
+                                        <span stock-adult>${isSoldOut ? 0 : (tourDetail.stockAdult > 0 ? 1 : 0)}</span>
                                         <span> x </span>
                                         <span class="inner-highlight"><fmt:formatNumber value="${tourDetail.priceNewAdult}" pattern="#,###" /></span>
                                     </div>
@@ -131,7 +143,7 @@
                                 <div class="inner-item">
                                     <label class="inner-item-label" for="stockChildren">Trẻ em:</label>
                                     <div class="inner-item-input">
-                                        <input id="stockChildren" min="0" max="${tourDetail.stockChildren}" value="0" name="stockChildren" type="number" input-stock-children price="${tourDetail.priceNewChildren}" />
+                                        <input id="stockChildren" min="0" max="${tourDetail.stockChildren}" value="0" name="stockChildren" type="number" input-stock-children price="${tourDetail.priceNewChildren}" ${isSoldOut ? 'disabled' : ''} />
                                     </div>
                                     <div class="inner-price">
                                         <span stock-children>0</span>
@@ -142,7 +154,7 @@
                                 <div class="inner-item">
                                     <label class="inner-item-label" for="stockBaby">Em bé:</label>
                                     <div class="inner-item-input">
-                                        <input id="stockBaby" min="0" max="${tourDetail.stockBaby}" value="0" name="stockBaby" type="number" input-stock-baby price="${tourDetail.priceNewBaby}" />
+                                        <input id="stockBaby" min="0" max="${tourDetail.stockBaby}" value="0" name="stockBaby" type="number" input-stock-baby price="${tourDetail.priceNewBaby}" ${isSoldOut ? 'disabled' : ''} />
                                     </div>
                                     <div class="inner-price">
                                         <span stock-baby>0</span>
@@ -154,9 +166,23 @@
                         </div>
                         <div class="inner-total">
                             <div class="inner-total-label">Tổng cộng</div>
-                            <div class="inner-total-price" total-price><fmt:formatNumber value="${tourDetail.priceNewAdult}" pattern="#,###" />đ</div>
+                            <div class="inner-total-price" total-price>
+                                <c:choose>
+                                    <c:when test="${isSoldOut}">0đ</c:when>
+                                    <c:otherwise><fmt:formatNumber value="${tourDetail.priceNewAdult}" pattern="#,###" />đ</c:otherwise>
+                                </c:choose>
+                            </div>
                         </div>
-                        <button class="inner-button-add-cart" type="button" tour-id="${tourDetail.id}">Thêm Vào Giỏ Hàng</button>
+                        <c:choose>
+                            <c:when test="${isSoldOut}">
+                                <button class="inner-button-add-cart disabled" type="button" disabled title="Tour đã hết chỗ">
+                                    <i class="fa-solid fa-ban"></i> ĐÃ HẾT CHỖ
+                                </button>
+                            </c:when>
+                            <c:otherwise>
+                                <button class="inner-button-add-cart" type="button" tour-id="${tourDetail.id}">Thêm Vào Giỏ Hàng</button>
+                            </c:otherwise>
+                        </c:choose>
                     </div>
                 </div>
             </div>

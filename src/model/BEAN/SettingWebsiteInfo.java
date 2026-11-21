@@ -55,6 +55,20 @@ public class SettingWebsiteInfo {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
+    public String getCleanPhone() {
+        if (phone == null || phone.trim().isEmpty()) return "0905383132";
+        String clean = phone.replaceAll("[^0-9+]", "");
+        return clean.isEmpty() ? "0905383132" : clean;
+    }
+
+    public String getZaloUrl() {
+        String clean = getCleanPhone();
+        if (clean.startsWith("+84")) {
+            clean = "0" + clean.substring(3);
+        }
+        return "https://zalo.me/" + clean;
+    }
+
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 

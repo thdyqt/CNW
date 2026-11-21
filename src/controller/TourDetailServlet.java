@@ -46,7 +46,10 @@ public class TourDetailServlet extends HttpServlet {
 
             breadcrumb.addItem("/tour/detail/" + tourDetail.getSlug(), tourDetail.getName());
 
-            List<City> cityList = cityDAO.getAllCities();
+            List<City> cityList = cityDAO.getCitiesByTourLocations(tourDetail.getLocations());
+            if (cityList == null || cityList.isEmpty()) {
+                cityList = cityDAO.getCitiesWithTours();
+            }
 
             req.setAttribute("pageTitle", tourDetail.getName() + " - Chi tiết tour");
             req.setAttribute("tourDetail", tourDetail);
@@ -55,7 +58,7 @@ public class TourDetailServlet extends HttpServlet {
 
             req.getRequestDispatcher("/webContent/client/pages/tour-detail.jsp").forward(req, resp);
         } else {
-            resp.sendRedirect(req.getContextPath() + "/home");
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 }

@@ -202,6 +202,26 @@ public class UserDAO {
         return null;
     }
 
+    public User getUserByPhone(String phone) {
+        if (phone == null || phone.trim().isEmpty()) return null;
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                String sql = "SELECT * FROM users WHERE phone = ? AND deleted = 0 LIMIT 1";
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, phone.trim());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        if (rs.next()) {
+                            return mapResultSetToUser(rs);
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     public User getUserByToken(String token) {
         if (token == null || token.trim().isEmpty()) return null;
         try (Connection conn = DBContext.getConnection()) {

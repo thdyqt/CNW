@@ -140,7 +140,7 @@ public class TourDAO {
         if (list.isEmpty()) {
             Tour t = new Tour();
             t.setId(99);
-            t.setCode("28T00099");
+            t.setCode("DUT00099");
             t.setName("Tour Mộc Châu - Mùa Mận Chín 2N1Đ");
             t.setTime("2 Ngày 1 Đêm");
             t.setAvatar("/public/assets/images/Background-2.jpg");
@@ -353,8 +353,7 @@ public class TourDAO {
         for (Tour t : getDefaultMockTours()) {
             if (slug != null && slug.equalsIgnoreCase(t.getSlug())) return t;
         }
-        List<Tour> mocks = getDefaultMockTours();
-        return mocks.isEmpty() ? null : mocks.get(0);
+        return null;
     }
 
     public Tour getTourById(int id) {
@@ -416,7 +415,7 @@ public class TourDAO {
 
         Tour t1 = new Tour();
         t1.setId(1);
-        t1.setCode("28T00001");
+        t1.setCode("DUT00001");
         t1.setName("Tour Đà Nẵng - Hội An - Bà Nà Hills 4N3Đ");
         t1.setCategoryId(3);
         t1.setPosition(10);
@@ -446,7 +445,7 @@ public class TourDAO {
 
         Tour t2 = new Tour();
         t2.setId(2);
-        t2.setCode("28T00002");
+        t2.setCode("DUT00002");
         t2.setName("Tour Hà Giang - Mùa Hoa Tam Giác Mạch 3N2Đ");
         t2.setCategoryId(2);
         t2.setPosition(9);
@@ -472,7 +471,7 @@ public class TourDAO {
 
         Tour t3 = new Tour();
         t3.setId(3);
-        t3.setCode("28T00003");
+        t3.setCode("DUT00003");
         t3.setName("Tour Phú Quốc - Thiên Đường Nghỉ Dưỡng 3N2Đ");
         t3.setCategoryId(4);
         t3.setPosition(8);
@@ -497,7 +496,7 @@ public class TourDAO {
 
         Tour t4 = new Tour();
         t4.setId(4);
-        t4.setCode("28T00004");
+        t4.setCode("DUT00004");
         t4.setName("Tour Nhật Bản: Tokyo - Núi Phú Sĩ - Kyoto 5N4Đ");
         t4.setCategoryId(6);
         t4.setPosition(7);
@@ -522,7 +521,7 @@ public class TourDAO {
 
         Tour t5 = new Tour();
         t5.setId(5);
-        t5.setCode("28T00005");
+        t5.setCode("DUT00005");
         t5.setName("Tour Thái Lan: Bangkok - Pattaya Bay 4N3Đ");
         t5.setCategoryId(6);
         t5.setPosition(6);

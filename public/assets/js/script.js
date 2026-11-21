@@ -408,9 +408,20 @@ if (orderForm) {
                 errorMessage: "Số điện thoại không đúng định dạng!"
             },
         ])
+        .addField("#email-input", [
+            {
+                rule: "required",
+                errorMessage: "Vui lòng nhập email nhận lịch trình tour!"
+            },
+            {
+                rule: "email",
+                errorMessage: "Địa chỉ email không đúng định dạng!"
+            }
+        ])
         .onSuccess(event => {
             const fullName = event.target.fullName.value;
             const phone = event.target.phone.value;
+            const email = event.target.email ? event.target.email.value.trim() : "";
             const note = event.target.note.value;
             const method = event.target.method.value;
 
@@ -431,8 +442,11 @@ if (orderForm) {
                 const dataFinal = {
                     fullName: fullName,
                     phone: phone,
+                    email: email,
                     note: note,
                     paymentMethod: method,
+                    couponCode: currentCoupon ? currentCoupon.code : "",
+                    discount: currentCoupon ? currentCoupon.discount : 0,
                     items: cart
                 };
 
@@ -459,6 +473,12 @@ if (orderForm) {
                         }
                     }
                     else if (data.code == "success") {
+                        // Xóa mã giảm giá đã áp dụng
+                        try {
+                            sessionStorage.removeItem("appliedCoupon");
+                        } catch(e) {}
+                        currentCoupon = null;
+
                         // Cập nhật lại giỏ hàng
                         let cart = JSON.parse(localStorage.getItem("cart"));
                         cart = cart.filter(item => item.checked == false);
@@ -622,34 +642,58 @@ if (boxTourDetail) {
     inputStockBaby.addEventListener("change", drawBoxDetail);
 
     const buttonAddToCart = boxTourDetail.querySelector(".inner-button-add-cart");
-    buttonAddToCart.addEventListener("click", () => {
-        const tourId = buttonAddToCart.getAttribute("tour-id");
-        const quantityAdult = parseInt(inputStockAdult.value);
-        const quantityChildren = parseInt(inputStockChildren.value);
-        const quantityBaby = parseInt(inputStockBaby.value);
-        const locationFrom = boxTourDetail.querySelector("[location-from]").value;
-
-        if (quantityAdult > 0 || quantityChildren > 0 || quantityBaby > 0) {
-            const cartItem = {
-                tourId: tourId,
-                quantityAdult: quantityAdult,
-                quantityChildren: quantityChildren,
-                quantityBaby: quantityBaby,
-                locationFrom: locationFrom,
-                checked: true
-            };
-
-            const cart = JSON.parse(localStorage.getItem("cart"));
-            const indexItemExist = cart.findIndex(item => item.tourId == tourId);
-            if (indexItemExist != -1) {
-                cart[indexItemExist] = cartItem;
-            } else {
-                cart.push(cartItem);
+    if (buttonAddToCart) {
+        buttonAddToCart.addEventListener("click", () => {
+            if (buttonAddToCart.disabled || buttonAddToCart.classList.contains("disabled")) {
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "warning",
+                        title: "Thông báo",
+                        text: "Tour này hiện đã hết chỗ. Quý khách vui lòng chọn ngày khởi hành khác hoặc liên hệ hotline để được hỗ trợ!",
+                        confirmButtonColor: "#2563EB",
+                        confirmButtonText: "Đã hiểu"
+                    });
+                }
+                return;
             }
-            localStorage.setItem("cart", JSON.stringify(cart));
-            window.location.href = `${CONTEXT_PATH}/cart`;
-        }
-    })
+            const tourId = buttonAddToCart.getAttribute("tour-id");
+            const quantityAdult = parseInt(inputStockAdult.value) || 0;
+            const quantityChildren = parseInt(inputStockChildren.value) || 0;
+            const quantityBaby = parseInt(inputStockBaby.value) || 0;
+            const locationFrom = boxTourDetail.querySelector("[location-from]") ? boxTourDetail.querySelector("[location-from]").value : 1;
+
+            if (quantityAdult > 0 || quantityChildren > 0 || quantityBaby > 0) {
+                const cartItem = {
+                    tourId: tourId,
+                    quantityAdult: quantityAdult,
+                    quantityChildren: quantityChildren,
+                    quantityBaby: quantityBaby,
+                    locationFrom: locationFrom,
+                    checked: true
+                };
+
+                const cart = JSON.parse(localStorage.getItem("cart")) || [];
+                const indexItemExist = cart.findIndex(item => item.tourId == tourId);
+                if (indexItemExist != -1) {
+                    cart[indexItemExist] = cartItem;
+                } else {
+                    cart.push(cartItem);
+                }
+                localStorage.setItem("cart", JSON.stringify(cart));
+                window.location.href = `${CONTEXT_PATH}/cart`;
+            } else {
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Thông báo",
+                        text: "Vui lòng chọn số lượng hành khách ít nhất 1 người trước khi thêm vào giỏ hàng!",
+                        confirmButtonColor: "#2563EB",
+                        confirmButtonText: "Đã hiểu"
+                    });
+                }
+            }
+        });
+    }
 }
 
 // Initial cart
@@ -666,6 +710,14 @@ if (miniCart) {
 }
 
 // Page Cart
+let currentCoupon = null;
+try {
+    const savedCoupon = sessionStorage.getItem("appliedCoupon");
+    if (savedCoupon) {
+        currentCoupon = JSON.parse(savedCoupon);
+    }
+} catch (e) {}
+
 const drawCart = () => {
     const cart = localStorage.getItem("cart");
 
@@ -698,7 +750,7 @@ const drawCart = () => {
                                     <a href="${CONTEXT_PATH}/tour/detail/${item.slug}">${item.name}</a>
                                 </div>
                                 <div class="inner-meta" bis_skin_checked="1">
-                                    <div class="inner-meta-item" bis_skin_checked="1">Mã Tour: <b>123456789</b></div>
+                                    <div class="inner-meta-item" bis_skin_checked="1">Mã Tour: <b>${item.code || ('DUT000' + item.tourId)}</b></div>
                                     <div class="inner-meta-item" bis_skin_checked="1">Ngày Khởi Hành: <b>${item.departureDateFormatted}</b></div>
                                     <div class="inner-meta-item" bis_skin_checked="1">Khởi Hành Tại: <b>${item.locationFromName}</b></div>
                                 </div>
@@ -763,44 +815,233 @@ const drawCart = () => {
                     }
                 }, 0);
                     
-                const discount = 0
-                const totalPrice = subTotalPrice - discount;
+                let discount = 0;
+                if (currentCoupon) {
+                    if (subTotalPrice <= 0) {
+                        currentCoupon = null;
+                        try { sessionStorage.removeItem("appliedCoupon"); } catch(e) {}
+                    } else if (currentCoupon.minOrderValue > 0 && subTotalPrice < currentCoupon.minOrderValue) {
+                        showAlert(`Đơn hàng không còn đủ giá trị tối thiểu (${currentCoupon.minOrderValue.toLocaleString("vi-VN")}đ) để áp dụng mã ${currentCoupon.code}!`, "warning");
+                        currentCoupon = null;
+                        try { sessionStorage.removeItem("appliedCoupon"); } catch(e) {}
+                    } else {
+                        if (currentCoupon.discountType === "percentage") {
+                            let disc = subTotalPrice * (currentCoupon.discountValue / 100);
+                            if (currentCoupon.maxDiscountValue > 0 && disc > currentCoupon.maxDiscountValue) {
+                                disc = currentCoupon.maxDiscountValue;
+                            }
+                            discount = Math.min(disc, subTotalPrice);
+                        } else {
+                            discount = Math.min(currentCoupon.discountValue, subTotalPrice);
+                        }
+                        currentCoupon.discount = discount;
+                    }
+                }
+                const totalPrice = Math.max(0, subTotalPrice - discount);
 
                 const elementCartSubTotal = document.querySelector("[cart-sub-total]");
                 const elementDiscount = document.querySelector("[cart-discount]");
                 const elementCartTotal = document.querySelector("[cart-total]");
 
-                elementCartSubTotal.innerHTML = subTotalPrice.toLocaleString("vi-VN")
-                elementDiscount.innerHTML = discount.toLocaleString("vi-VN")
-                elementCartTotal.innerHTML = totalPrice.toLocaleString("vi-VN")
+                if (elementCartSubTotal) elementCartSubTotal.innerHTML = subTotalPrice.toLocaleString("vi-VN");
+                if (elementDiscount) elementDiscount.innerHTML = discount.toLocaleString("vi-VN");
+                if (elementCartTotal) elementCartTotal.innerHTML = totalPrice.toLocaleString("vi-VN");
 
-                // Cập nhật số lượng
+                // Cập nhật hiển thị coupon
+                const couponFormEl = document.querySelector("#coupon-form");
+                const couponAppliedBox = document.querySelector("#coupon-applied-box");
+                const appliedCodeEl = document.querySelector("#applied-coupon-code");
+                const appliedDescEl = document.querySelector("#applied-coupon-desc");
+
+                if (couponFormEl && couponAppliedBox) {
+                    if (currentCoupon && discount > 0) {
+                        couponFormEl.style.display = "none";
+                        couponAppliedBox.style.display = "flex";
+                        if (appliedCodeEl) appliedCodeEl.innerText = currentCoupon.code;
+                        if (appliedDescEl) appliedDescEl.innerText = `(-${discount.toLocaleString("vi-VN")}đ)`;
+                    } else {
+                        couponFormEl.style.display = "flex";
+                        couponAppliedBox.style.display = "none";
+                    }
+                }
+
+                // Cập nhật trạng thái và sắp xếp mã giảm giá: Dùng được / Đang dùng lên trước, chưa đủ điều kiện ra sau
+                const couponsGrid = document.querySelector(".inner-coupons-grid");
+                if (couponsGrid) {
+                    const listPills = Array.from(couponsGrid.querySelectorAll("[coupon-pill]"));
+                    listPills.forEach(pill => {
+                        const pillCode = pill.getAttribute("coupon-pill");
+                        const minOrder = parseFloat(pill.getAttribute("data-min")) || 0;
+                        const btn = pill.querySelector(".btn-use-coupon");
+                        const isEligible = subTotalPrice >= minOrder && subTotalPrice > 0;
+                        const isActive = currentCoupon && currentCoupon.code === pillCode;
+
+                        if (!isEligible) {
+                            pill.classList.add("unmet");
+                            pill.classList.remove("active");
+                            pill.dataset.priority = "3";
+                            if (btn) {
+                                btn.innerHTML = 'Áp dụng';
+                                const diff = minOrder - subTotalPrice;
+                                if (diff > 0) {
+                                    btn.setAttribute("title", `Đơn hàng cần đạt tối thiểu ${minOrder.toLocaleString("vi-VN")}đ (còn thiếu ${diff.toLocaleString("vi-VN")}đ)`);
+                                } else {
+                                    btn.setAttribute("title", "Chọn ít nhất một tour trong giỏ hàng để sử dụng mã này");
+                                }
+                            }
+                        } else {
+                            pill.classList.remove("unmet");
+                            if (isActive) {
+                                pill.classList.add("active");
+                                pill.dataset.priority = "1";
+                                if (btn) {
+                                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Đang dùng';
+                                    btn.removeAttribute("title");
+                                }
+                            } else {
+                                pill.classList.remove("active");
+                                pill.dataset.priority = "2";
+                                if (btn) {
+                                    btn.innerHTML = 'Áp dụng';
+                                    btn.removeAttribute("title");
+                                }
+                            }
+                        }
+                    });
+
+                    // Sắp xếp các thẻ: Đang dùng (1) -> Dùng được (2) -> Chưa đủ điều kiện (3)
+                    listPills.sort((a, b) => {
+                        const prioA = parseInt(a.dataset.priority || "2");
+                        const prioB = parseInt(b.dataset.priority || "2");
+                        if (prioA !== prioB) return prioA - prioB;
+                        const minA = parseFloat(a.getAttribute("data-min")) || 0;
+                        const minB = parseFloat(b.getAttribute("data-min")) || 0;
+                        return minA - minB;
+                    });
+
+                    // Đưa các phần tử đã sắp xếp lại vào DOM
+                    listPills.forEach(pill => couponsGrid.appendChild(pill));
+                }
+
+                // Cập nhật số lượng hành khách
                 const listInputQuantity = document.querySelectorAll("[input-quantity]");
                 listInputQuantity.forEach(input => {
                     input.addEventListener("change", () => {
                         const tourId = input.getAttribute("tour-id");
                         const name = input.getAttribute("name");
-                        const quantity = parseInt(input.value);
-                        const cart = JSON.parse(localStorage.getItem("cart"));
+                        let quantity = parseInt(input.value);
+                        if (isNaN(quantity) || quantity < 0) quantity = 0;
+
+                        const cart = JSON.parse(localStorage.getItem("cart")) || [];
                         const itemUpdate = cart.find(item => item.tourId == tourId);
+                        if (!itemUpdate) return;
+
+                        // Tính toán tổng số lượng hành khách sau khi cập nhật
+                        const qAdult = name === 'quantityAdult' ? quantity : (itemUpdate.quantityAdult || 0);
+                        const qChildren = name === 'quantityChildren' ? quantity : (itemUpdate.quantityChildren || 0);
+                        const qBaby = name === 'quantityBaby' ? quantity : (itemUpdate.quantityBaby || 0);
+                        const totalPassengers = qAdult + qChildren + qBaby;
+
+                        // Nếu số lượng về 0 (tổng khách = 0 hoặc người lớn = 0)
+                        if (totalPassengers === 0 || (qAdult === 0 && (qChildren > 0 || qBaby > 0))) {
+                            const tourTitle = itemUpdate.name ? `"${itemUpdate.name}"` : "tour này";
+                            const confirmMsg = totalPassengers === 0 
+                                ? `Số lượng hành khách bằng 0. Bạn có chắc chắn muốn xóa ${tourTitle} khỏi giỏ hàng không?`
+                                : `Tour cần ít nhất 1 người lớn đi kèm. Bạn có muốn xóa ${tourTitle} khỏi giỏ hàng không?`;
+
+                            if (typeof Swal !== "undefined") {
+                                Swal.fire({
+                                    title: "Xóa tour khỏi giỏ hàng?",
+                                    text: confirmMsg,
+                                    icon: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#EF4444",
+                                    cancelButtonColor: "#94a3b8",
+                                    confirmButtonText: "Đồng ý xóa",
+                                    cancelButtonText: "Hủy bỏ"
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        const indexItem = cart.findIndex(t => t.tourId == tourId);
+                                        if (indexItem !== -1) {
+                                            cart.splice(indexItem, 1);
+                                            localStorage.setItem("cart", JSON.stringify(cart));
+                                        }
+                                        drawCart();
+                                        showAlert("Đã xóa tour khỏi giỏ hàng!", "info");
+                                    } else {
+                                        // Khôi phục lại số lượng (1 người lớn)
+                                        input.value = name === 'quantityAdult' ? 1 : 0;
+                                        itemUpdate[name] = parseInt(input.value);
+                                        localStorage.setItem("cart", JSON.stringify(cart));
+                                        drawCart();
+                                    }
+                                });
+                            } else {
+                                if (confirm(confirmMsg)) {
+                                    const indexItem = cart.findIndex(t => t.tourId == tourId);
+                                    if (indexItem !== -1) {
+                                        cart.splice(indexItem, 1);
+                                        localStorage.setItem("cart", JSON.stringify(cart));
+                                    }
+                                    drawCart();
+                                } else {
+                                    input.value = name === 'quantityAdult' ? 1 : 0;
+                                    itemUpdate[name] = parseInt(input.value);
+                                    localStorage.setItem("cart", JSON.stringify(cart));
+                                    drawCart();
+                                }
+                            }
+                            return;
+                        }
+
                         itemUpdate[name] = quantity;
                         localStorage.setItem("cart", JSON.stringify(cart));
                         drawCart();
-                    })
-                })
+                    });
+                });
 
-                // Xóa tour khỏi giỏ hàng
+                // Xóa tour khỏi giỏ hàng qua nút bấm
                 const listButtonDelete = document.querySelectorAll("[button-delete]");
                 listButtonDelete.forEach(button => {
                     button.addEventListener("click", () => {
                         const tourId = button.getAttribute("tour-id");
-                        const cart = JSON.parse(localStorage.getItem("cart"));
-                        const indexItem = cart.findIndex(tour => tour.tourId == tourId);
-                        cart.splice(indexItem, 1);
-                        localStorage.setItem("cart", JSON.stringify(cart));
-                        drawCart();
-                    })
-                })
+                        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+                        const item = cart.find(tour => tour.tourId == tourId);
+                        const tourTitle = item && item.name ? `"${item.name}"` : "tour này";
+
+                        if (typeof Swal !== "undefined") {
+                            Swal.fire({
+                                title: "Xóa tour khỏi giỏ hàng?",
+                                text: `Bạn có chắc chắn muốn xóa ${tourTitle} khỏi giỏ hàng không?`,
+                                icon: "warning",
+                                showCancelButton: true,
+                                confirmButtonColor: "#EF4444",
+                                cancelButtonColor: "#94a3b8",
+                                confirmButtonText: "Đồng ý xóa",
+                                cancelButtonText: "Hủy bỏ"
+                            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    const indexItem = cart.findIndex(tour => tour.tourId == tourId);
+                                    if (indexItem !== -1) {
+                                        cart.splice(indexItem, 1);
+                                        localStorage.setItem("cart", JSON.stringify(cart));
+                                    }
+                                    drawCart();
+                                    showAlert("Đã xóa tour khỏi giỏ hàng!", "info");
+                                }
+                            });
+                        } else {
+                            if (confirm(`Bạn có chắc chắn muốn xóa ${tourTitle} khỏi giỏ hàng không?`)) {
+                                const indexItem = cart.findIndex(tour => tour.tourId == tourId);
+                                if (indexItem !== -1) {
+                                    cart.splice(indexItem, 1);
+                                    localStorage.setItem("cart", JSON.stringify(cart));
+                                }
+                                drawCart();
+                            }
+                        }
+                    });
+                });
 
                 // Sự kiện check
                 const listInputCheck = document.querySelectorAll("[input-check]");
@@ -822,7 +1063,390 @@ const drawCart = () => {
 const pageCart = document.querySelector("[page-cart]");
 if (pageCart) {
     drawCart();
+
+    // Hàm áp dụng mã giảm giá chuyên dụng, đáng tin cậy
+    const applyCoupon = (code) => {
+        if (!code) {
+            if (typeof Swal !== "undefined") {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Chưa nhập mã",
+                    text: "Vui lòng nhập mã giảm giá!",
+                    confirmButtonColor: "#2563EB"
+                });
+            } else {
+                showAlert("Vui lòng nhập mã giảm giá!", "warning");
+            }
+            return;
+        }
+
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        let subTotal = 0;
+        cart.forEach(item => {
+            if (item.checked) {
+                subTotal += (item.priceNewAdult || 0) * (item.quantityAdult || 0)
+                          + (item.priceNewChildren || 0) * (item.quantityChildren || 0)
+                          + (item.priceNewBaby || 0) * (item.quantityBaby || 0);
+            }
+        });
+
+        if (subTotal <= 0) {
+            if (typeof Swal !== "undefined") {
+                Swal.fire({
+                    icon: "info",
+                    title: "Chưa chọn tour",
+                    text: "Vui lòng chọn ít nhất một tour trong giỏ hàng để áp dụng mã giảm giá!",
+                    confirmButtonColor: "#2563EB"
+                });
+            } else {
+                showAlert("Vui lòng chọn ít nhất một tour trong giỏ hàng để áp dụng mã giảm giá!", "warning");
+            }
+            return;
+        }
+
+        // Kiểm tra nhanh điều kiện đơn hàng tối thiểu nếu mã có sẵn trong danh sách
+        const targetPill = document.querySelector(`[coupon-pill="${code}"]`);
+        if (targetPill) {
+            const minOrder = parseFloat(targetPill.getAttribute("data-min")) || 0;
+            if (minOrder > 0 && subTotal < minOrder) {
+                const diff = minOrder - subTotal;
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "info",
+                        title: "Chưa đủ điều kiện",
+                        html: `Mã giảm giá <b>${code}</b> áp dụng cho đơn hàng từ <b>${minOrder.toLocaleString("vi-VN")}đ</b> trở lên.<br>Tạm tính hiện tại của bạn: <b>${subTotal.toLocaleString("vi-VN")}đ</b> (còn thiếu <b>${diff.toLocaleString("vi-VN")}đ</b>).`,
+                        confirmButtonColor: "#2563EB",
+                        confirmButtonText: "Đã hiểu"
+                    });
+                } else {
+                    showAlert(`Đơn hàng cần đạt tối thiểu ${minOrder.toLocaleString("vi-VN")}đ để dùng mã này!`, "warning");
+                }
+                return;
+            }
+        }
+
+        const btnApply = document.querySelector("#btn-apply-coupon");
+        const originalText = btnApply ? btnApply.innerText : "";
+        if (btnApply) {
+            btnApply.disabled = true;
+            btnApply.innerText = "Đang kiểm tra...";
+        }
+
+        const targetBtn = document.querySelector(`[button-quick-apply="${code}"]`);
+        const originalTargetHtml = targetBtn ? targetBtn.innerHTML : "";
+        if (targetBtn) {
+            targetBtn.disabled = true;
+            targetBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        }
+
+        fetch(`${CONTEXT_PATH}/cart/apply-coupon`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                couponCode: code,
+                subTotal: subTotal
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (btnApply) {
+                btnApply.disabled = false;
+                btnApply.innerText = originalText;
+            }
+            if (targetBtn) {
+                targetBtn.disabled = false;
+                targetBtn.innerHTML = originalTargetHtml;
+            }
+
+            if (data.code === "success") {
+                currentCoupon = {
+                    code: data.couponCode,
+                    title: data.couponTitle,
+                    discount: data.discount,
+                    discountType: data.discountType,
+                    discountValue: data.discountValue,
+                    minOrderValue: data.minOrderValue || 0,
+                    maxDiscountValue: data.maxDiscountValue || 0
+                };
+                try {
+                    sessionStorage.setItem("appliedCoupon", JSON.stringify(currentCoupon));
+                } catch(e) {}
+
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Áp dụng thành công!",
+                        text: `Mã ${data.couponCode} đã giảm ${data.discount.toLocaleString("vi-VN")}đ cho đơn hàng của bạn.`,
+                        confirmButtonColor: "#2563EB",
+                        confirmButtonText: "Tuyệt vời"
+                    });
+                } else {
+                    showAlert("Áp dụng mã giảm giá thành công!", "success");
+                }
+                drawCart();
+            } else {
+                if (typeof Swal !== "undefined") {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Không thể áp dụng",
+                        text: data.message || "Mã giảm giá không hợp lệ!",
+                        confirmButtonColor: "#EF4444",
+                        confirmButtonText: "Đã hiểu"
+                    });
+                } else {
+                    showAlert(data.message || "Mã giảm giá không hợp lệ!", "error");
+                }
+            }
+        })
+        .catch(err => {
+            if (btnApply) {
+                btnApply.disabled = false;
+                btnApply.innerText = originalText;
+            }
+            if (targetBtn) {
+                targetBtn.disabled = false;
+                targetBtn.innerHTML = originalTargetHtml;
+            }
+            console.error(err);
+            showAlert("Có lỗi khi kiểm tra mã giảm giá!", "error");
+        });
+    };
+
+    // Xử lý gửi mã giảm giá từ form
+    const couponForm = document.querySelector("#coupon-form");
+    if (couponForm) {
+        couponForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+            const input = document.querySelector("#coupon-input");
+            const code = input ? input.value.trim().toUpperCase() : "";
+            applyCoupon(code);
+        });
+    }
+
+    // Nút gỡ mã giảm giá
+    const btnRemoveCoupon = document.querySelector("#btn-remove-coupon");
+    if (btnRemoveCoupon) {
+        btnRemoveCoupon.addEventListener("click", () => {
+            currentCoupon = null;
+            try {
+                sessionStorage.removeItem("appliedCoupon");
+            } catch(e) {}
+            const couponInput = document.querySelector("#coupon-input");
+            if (couponInput) couponInput.value = "";
+            drawCart();
+            showAlert("Đã gỡ mã giảm giá!", "info");
+        });
+    }
+
+    // Nút áp dụng nhanh mã giảm giá từ danh sách có sẵn (sử dụng event delegation để bắt click 100% chính xác)
+    document.addEventListener("click", (e) => {
+        const quickBtn = e.target.closest("[button-quick-apply]");
+        if (quickBtn) {
+            e.preventDefault();
+            const code = quickBtn.getAttribute("button-quick-apply");
+            const couponInput = document.querySelector("#coupon-input");
+            if (couponInput) couponInput.value = code;
+            applyCoupon(code);
+        }
+    });
+
+    // Xem chi tiết mã giảm giá khi bấm vào thẻ trong giỏ hàng
+    document.addEventListener("click", (e) => {
+        if (e.target.closest("[button-quick-apply]")) return;
+
+        const pill = e.target.closest(".inner-coupon-pill");
+        if (!pill) return;
+
+        const code = pill.getAttribute("data-code") || pill.getAttribute("coupon-pill");
+        const title = pill.getAttribute("data-title") || "Ưu Đãi Đặc Biệt";
+        const type = pill.getAttribute("data-type") || "percentage";
+        const valueFormatted = pill.getAttribute("data-value-formatted") || "";
+        const minOrder = parseFloat(pill.getAttribute("data-min")) || 0;
+        const minFormatted = pill.getAttribute("data-min-formatted") || "0đ";
+        const maxDiscount = parseFloat(pill.getAttribute("data-max")) || 0;
+        const maxFormatted = pill.getAttribute("data-max-formatted") || "";
+        const endDate = pill.getAttribute("data-end") || "";
+
+        // Lấy tạm tính giỏ hàng hiện tại
+        const cart = JSON.parse(localStorage.getItem("cart")) || [];
+        let subTotal = 0;
+        cart.forEach(item => {
+            if (item.checked) {
+                subTotal += (item.priceNewAdult || 0) * (item.quantityAdult || 0)
+                          + (item.priceNewChildren || 0) * (item.quantityChildren || 0)
+                          + (item.priceNewBaby || 0) * (item.quantityBaby || 0);
+            }
+        });
+
+        const isEligible = subTotal >= minOrder && subTotal > 0;
+        const isApplied = currentCoupon && currentCoupon.code === code;
+
+        const modalHtml = `
+            <div class="modal-coupon-card">
+                <div class="modal-coupon-header ${type === 'fixed' ? 'fixed' : 'percentage'}">
+                    <div class="badge-icon"><i class="fa-solid fa-ticket"></i></div>
+                    <div class="header-info">
+                        <div class="header-amount">${valueFormatted}</div>
+                        <div class="header-code-pill">MÃ: ${code}</div>
+                    </div>
+                </div>
+                <div class="modal-coupon-body">
+                    <h3 class="modal-coupon-title">${title}</h3>
+                    
+                    <div class="modal-coupon-details">
+                        <div class="modal-detail-row">
+                            <span class="label"><i class="fa-solid fa-tag"></i> Loại ưu đãi:</span>
+                            <span class="val">${type === 'percentage' ? 'Giảm theo phần trăm' : 'Khấu trừ tiền mặt trực tiếp'}</span>
+                        </div>
+                        <div class="modal-detail-row">
+                            <span class="label"><i class="fa-solid fa-cart-shopping"></i> Đơn tối thiểu:</span>
+                            <span class="val">${minOrder > 0 ? minFormatted : 'Mọi giá trị đơn hàng'}</span>
+                        </div>
+                        ${maxDiscount > 0 ? `
+                        <div class="modal-detail-row">
+                            <span class="label"><i class="fa-solid fa-shield-halved"></i> Giảm tối đa:</span>
+                            <span class="val">${maxFormatted}</span>
+                        </div>` : ''}
+                        <div class="modal-detail-row">
+                            <span class="label"><i class="fa-regular fa-clock"></i> Hạn sử dụng:</span>
+                            <span class="val">${endDate ? endDate : 'Vô thời hạn'}</span>
+                        </div>
+                    </div>
+
+                    <div class="modal-status-pill ${isEligible ? 'eligible' : 'unmet'}">
+                        <i class="fa-solid ${isEligible ? 'fa-circle-check' : 'fa-triangle-exclamation'}"></i>
+                        <div class="status-desc">
+                            ${isEligible 
+                                ? `<b>Đã đủ điều kiện áp dụng!</b><br>Tạm tính đơn hàng của bạn: <b>${subTotal.toLocaleString('vi-VN')}đ</b>.`
+                                : `<b>Chưa đủ điều kiện sử dụng</b><br>Tạm tính hiện tại: <b>${subTotal.toLocaleString('vi-VN')}đ</b> (cần thêm <b>${(minOrder - subTotal).toLocaleString('vi-VN')}đ</b> để áp dụng).`
+                            }
+                        </div>
+                    </div>
+
+                    <div class="modal-actions">
+                        ${isApplied ? `
+                            <button type="button" class="modal-btn-apply applied" disabled>
+                                <i class="fa-solid fa-check"></i> Đang sử dụng mã này
+                            </button>
+                        ` : `
+                            <button type="button" class="modal-btn-apply" id="btn-modal-apply-trigger">
+                                <i class="fa-solid fa-bolt"></i> Áp dụng mã ngay
+                            </button>
+                        `}
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (typeof Swal !== "undefined") {
+            Swal.fire({
+                html: modalHtml,
+                showConfirmButton: false,
+                showCloseButton: true,
+                customClass: {
+                    popup: "swal2-coupon-detail-popup"
+                },
+                didOpen: () => {
+                    const btnApplyTrigger = document.querySelector("#btn-modal-apply-trigger");
+                    if (btnApplyTrigger) {
+                        btnApplyTrigger.addEventListener("click", () => {
+                            Swal.close();
+                            applyCoupon(code);
+                        });
+                    }
+                }
+            });
+        }
+    });
 }
+
+// Xử lý sao chép mã giảm giá (Dùng cho cả trang chủ và các nơi khác - Bắt sự kiện toàn trang)
+const copyToClipboard = (text) => {
+    if (navigator.clipboard && window.isSecureContext) {
+        return navigator.clipboard.writeText(text).catch(() => {
+            return execCommandCopy(text);
+        });
+    }
+    return execCommandCopy(text);
+};
+
+const execCommandCopy = (text) => {
+    return new Promise((resolve) => {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        textArea.style.position = "fixed";
+        textArea.style.left = "-9999px";
+        textArea.style.top = "-9999px";
+        textArea.setAttribute("readonly", "");
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        textArea.setSelectionRange(0, 99999);
+        try {
+            document.execCommand("copy");
+        } catch (err) {
+            console.error("execCommand copy error:", err);
+        }
+        document.body.removeChild(textArea);
+        resolve();
+    });
+};
+
+const notifyCopiedSuccess = (btn, code) => {
+    if (btn) {
+        const originalHtml = btn.innerHTML;
+        btn.classList.add("copied");
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> <span>Đã sao chép!</span>';
+        setTimeout(() => {
+            btn.classList.remove("copied");
+            btn.innerHTML = originalHtml;
+        }, 2500);
+    }
+
+    // Hiển thị Toast thông báo hiện đại, tinh gọn ở góc trên bên phải (không chặn màn hình)
+    if (typeof Swal !== "undefined") {
+        const Toast = Swal.mixin({
+            toast: true,
+            position: "top-end",
+            showConfirmButton: false,
+            timer: 2500,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener("mouseenter", Swal.stopTimer);
+                toast.addEventListener("mouseleave", Swal.resumeTimer);
+            }
+        });
+
+        Toast.fire({
+            icon: "success",
+            title: `Đã sao chép mã: <span style="color: #2563eb; font-family: monospace; font-size: 1.1em; font-weight: 800; margin-left: 4px;">${code}</span>`
+        });
+    } else {
+        showAlert(`Đã sao chép mã ${code}!`, "success", 2500);
+    }
+};
+
+document.addEventListener("click", (e) => {
+    const copyTarget = e.target.closest("[button-copy-coupon]");
+    if (copyTarget) {
+        e.preventDefault();
+        e.stopPropagation();
+        const code = copyTarget.getAttribute("button-copy-coupon");
+        if (!code) return;
+
+        // Tìm nút button tương ứng trong cùng thẻ card để đổi hiệu ứng
+        const card = copyTarget.closest(".inner-voucher-card");
+        const btn = card ? card.querySelector(".btn-copy-coupon") : copyTarget;
+
+        copyToClipboard(code).then(() => {
+            notifyCopiedSuccess(btn, code);
+        }).catch(() => {
+            notifyCopiedSuccess(btn, code);
+        });
+    }
+});
 
 // Contact Page FAQ Accordion
 const faqQuestions = document.querySelectorAll(".section-13 .inner-faq-question");
@@ -1024,6 +1648,25 @@ if (newsSidebarBtn && newsSidebarEmail) {
             } else {
                 alert('Có lỗi xảy ra, vui lòng thử lại sau!');
             }
+        });
+    });
+}
+
+// Back To Top Floating Action Button
+const btnBackToTop = document.getElementById("btn-back-to-top");
+if (btnBackToTop) {
+    window.addEventListener("scroll", () => {
+        if (window.scrollY > 280) {
+            btnBackToTop.style.display = "flex";
+        } else {
+            btnBackToTop.style.display = "none";
+        }
+    }, { passive: true });
+
+    btnBackToTop.addEventListener("click", () => {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
         });
     });
 }

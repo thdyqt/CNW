@@ -55,7 +55,7 @@ public class MailUtil {
             });
 
             MimeMessage message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(user, "28Tech Travel"));
+            message.setFrom(new InternetAddress(user, "DUT Travel"));
             message.setRecipient(Message.RecipientType.TO, new InternetAddress(toEmail));
             message.setSubject(subject, "UTF-8");
             message.setContent(htmlContent, "text/html; charset=UTF-8");

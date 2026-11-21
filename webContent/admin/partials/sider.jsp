@@ -39,6 +39,14 @@
                 </a>
             </li>
         </c:if>
+        <c:if test="${not empty loggedInAdmin and (loggedInAdmin.hasPermission('coupon-view') or loggedInAdmin.hasPermission('order-view'))}">
+            <li>
+                <a href="${pageContext.request.contextPath}/${pathAdmin}/coupon/list" class="${fn:contains(currentUri, 'coupon') ? 'active' : ''}">
+                    <i class="fa-solid fa-ticket"></i>
+                    Quản lý mã giảm giá
+                </a>
+            </li>
+        </c:if>
         <c:if test="${not empty loggedInAdmin and loggedInAdmin.hasPermission('user-view')}">
             <li>
                 <a href="${pageContext.request.contextPath}/${pathAdmin}/user/list" class="${fn:contains(currentUri, 'user') ? 'active' : ''}">

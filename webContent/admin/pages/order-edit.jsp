@@ -19,6 +19,10 @@
             <label class="inner-label" for="phone">Số điện thoại</label>
             <input type="text" id="phone" name="phone" value="${currentOrder.phone}" />
         </div>
+        <div class="inner-group">
+            <label class="inner-label" for="email">Địa chỉ Email</label>
+            <input type="email" id="email" name="email" value="${currentOrder.email}" placeholder="example@gmail.com" />
+        </div>
         <div class="inner-group inner-two-col">
             <label class="inner-label" for="note">Ghi chú</label>
             <textarea id="note" name="note">${currentOrder.note}</textarea>
@@ -80,8 +84,12 @@
             <label class="inner-label">Thanh toán</label>
             <div class="inner-order-total">
                 <div>Tổng tiền: ${currentOrder.subTotalFormatted}đ</div>
-                <div>Giảm: 0đ</div>
-                <div>Mã giảm: </div>
+                <c:if test="${currentOrder.discount > 0}">
+                    <div style="color: #ef4444; font-weight: 600;">Giảm giá: -${currentOrder.discountFormatted}đ</div>
+                </c:if>
+                <c:if test="${not empty currentOrder.couponCode}">
+                    <div>Mã giảm: <span style="background: #eff6ff; color: #2563eb; font-weight: 700; padding: 2px 6px; border-radius: 4px; border: 1px dashed #3b82f6;">${currentOrder.couponCode}</span></div>
+                </c:if>
                 <div>Thanh toán: <span class="inner-order-price">${currentOrder.totalFormatted}đ</span></div>
             </div>
         </div>

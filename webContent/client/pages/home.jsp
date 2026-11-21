@@ -12,7 +12,7 @@
     <div class="container">
         <div class="inner-wrap">
             <div class="inner-badge" data-aos-duration="800" data-aos="fade-down">
-                <i class="fa-solid fa-sparkles"></i>
+                <i class="fa-solid fa-crown"></i>
                 <span>Trải Nghiệm Đẳng Cấp Cùng DUT Travel</span>
             </div>
             <h1 class="inner-title" data-aos-duration="800" data-aos="fade-up">
@@ -228,6 +228,70 @@
             <h2 class="title">Khuyến Mại Bùng Nổ - Đánh Tan Nóng Bức</h2>
             <p class="section-desc">Hàng loạt voucher giảm giá và quà tặng đặc sắc dành riêng cho mùa hè này</p>
         </div>
+
+        <!-- Danh Sách Mã Giảm Giá Độc Quyền (Thiết kế Ticket hiện đại chống tràn chữ) -->
+        <c:if test="${not empty couponList}">
+            <div class="inner-voucher-list" data-aos-delay="100" data-aos-duration="800" data-aos="fade-up">
+                <c:forEach var="item" items="${couponList}">
+                    <div class="inner-voucher-card ${item.type == 'fixed' ? 'voucher-fixed' : 'voucher-percent'}">
+                        <!-- Phần trên: Badge Ưu đãi & Hạn sử dụng -->
+                        <div class="inner-voucher-header">
+                            <div class="inner-voucher-badge">
+                                <i class="fa-solid fa-ticket"></i>
+                                <span>GIẢM ${item.valueFormatted}</span>
+                            </div>
+                            <div class="inner-voucher-hsd">
+                                <c:choose>
+                                    <c:when test="${not empty item.endDate}">
+                                        <i class="fa-regular fa-clock"></i> HSD: ${item.endDateFormatted}
+                                    </c:when>
+                                    <c:otherwise>
+                                        <i class="fa-solid fa-infinity"></i> Vô thời hạn
+                                    </c:otherwise>
+                                </c:choose>
+                            </div>
+                        </div>
+
+                        <!-- Phần thân: Tiêu đề & Điều kiện áp dụng đầy đủ chiều ngang -->
+                        <div class="inner-voucher-body">
+                            <h3 class="inner-voucher-title">${item.title}</h3>
+                            <p class="inner-voucher-condition">
+                                <c:choose>
+                                    <c:when test="${item.minOrderValue > 0}">
+                                        <span>Đơn từ <b>${item.minOrderValueFormatted}</b></span>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <span>Áp dụng cho mọi giá trị đơn</span>
+                                    </c:otherwise>
+                                </c:choose>
+                                <c:if test="${item.type == 'percentage' and item.maxDiscountValue > 0}">
+                                    <span> • Tối đa <b>${item.maxDiscountValueFormatted}</b></span>
+                                </c:if>
+                            </p>
+                        </div>
+
+                        <!-- Đường đứt đoạn xé vé & khuyết tròn 2 bên mép -->
+                        <div class="inner-voucher-divider">
+                            <span class="notch notch-left"></span>
+                            <span class="dashed-line"></span>
+                            <span class="notch notch-right"></span>
+                        </div>
+
+                        <!-- Phần đáy: Hộp mã coupon & Nút sao chép chuyên biệt -->
+                        <div class="inner-voucher-footer">
+                            <div class="inner-voucher-code-wrap" button-copy-coupon="${item.code}" title="Bấm để sao chép mã ${item.code}">
+                                <span class="label">MÃ:</span>
+                                <span class="inner-code">${item.code} <i class="fa-regular fa-copy" style="font-size: 11px; margin-left: 4px; opacity: 0.7;"></i></span>
+                            </div>
+                            <button type="button" class="btn-copy-coupon" button-copy-coupon="${item.code}" title="Sao chép mã ${item.code}">
+                                <i class="fa-regular fa-copy"></i>
+                                <span>Sao chép</span>
+                            </button>
+                        </div>
+                    </div>
+                </c:forEach>
+            </div>
+        </c:if>
         <div class="swiper swiper-section-3" data-aos-delay="150" data-aos-duration="800" data-aos="fade-up">
             <div class="swiper-wrapper">
                 <div class="swiper-slide">

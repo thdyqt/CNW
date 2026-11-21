@@ -277,6 +277,7 @@ public class AdminOrderServlet extends HttpServlet {
 
             String fullName = null;
             String phone = null;
+            String email = null;
             String note = null;
             String paymentMethod = null;
             String paymentStatus = null;
@@ -288,6 +289,7 @@ public class AdminOrderServlet extends HttpServlet {
                     if (node != null) {
                         if (node.has("fullName")) fullName = node.get("fullName").asText();
                         if (node.has("phone")) phone = node.get("phone").asText();
+                        if (node.has("email")) email = node.get("email").asText();
                         if (node.has("note")) note = node.get("note").asText();
                         if (node.has("paymentMethod")) paymentMethod = node.get("paymentMethod").asText();
                         if (node.has("paymentStatus")) paymentStatus = node.get("paymentStatus").asText();
@@ -297,6 +299,7 @@ public class AdminOrderServlet extends HttpServlet {
             } else {
                 fullName = request.getParameter("fullName");
                 phone = request.getParameter("phone");
+                email = request.getParameter("email");
                 note = request.getParameter("note");
                 paymentMethod = request.getParameter("paymentMethod");
                 paymentStatus = request.getParameter("paymentStatus");
@@ -307,6 +310,7 @@ public class AdminOrderServlet extends HttpServlet {
             if (order != null) {
                 if (fullName != null) order.setFullName(fullName.trim());
                 if (phone != null) order.setPhone(phone.trim());
+                if (email != null) order.setEmail(email.trim());
                 if (note != null) order.setNote(note.trim());
                 if (paymentMethod != null) order.setPaymentMethod(paymentMethod.trim());
                 if (paymentStatus != null) order.setPaymentStatus(paymentStatus.trim());

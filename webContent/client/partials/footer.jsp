@@ -13,10 +13,12 @@
             <nav class="inner-links">
                 <ul>
                     <li><a href="${pageContext.request.contextPath}/">Trang Chủ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/about">Giới Thiệu</a></li>
                     <li><a href="${pageContext.request.contextPath}/category/tour-trong-nuoc">Tour Trong Nước</a></li>
                     <li><a href="${pageContext.request.contextPath}/category/tour-nuoc-ngoai">Tour Nước Ngoài</a></li>
                     <li><a href="${pageContext.request.contextPath}/news">Tin Tức</a></li>
                     <li><a href="${pageContext.request.contextPath}/contact">Liên Hệ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/order/lookup">Tra Cứu Đơn Hàng</a></li>
                 </ul>
             </nav>
             <nav class="inner-socials">
@@ -37,8 +39,8 @@
             </div>
             <nav class="inner-links">
                 <ul>
-                    <li><a href="#">Điều khoản dịch vụ</a></li>
-                    <li><a href="#">Chính sách bảo mật</a></li>
+                    <li><a href="${pageContext.request.contextPath}/terms">Điều khoản dịch vụ</a></li>
+                    <li><a href="${pageContext.request.contextPath}/privacy">Chính sách bảo mật</a></li>
                 </ul>
             </nav>
         </div>

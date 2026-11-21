@@ -20,18 +20,36 @@
 
     <div class="section-11">
         <div class="inner-wrap">
+            <div style="background: #eff6ff; border: 1.5px solid #3b82f6; color: #1e40af; padding: 14px 18px; border-radius: 12px; margin-bottom: 20px; font-size: 14px; display: flex; align-items: center; gap: 12px;">
+                <i class="fa-solid fa-envelope-circle-check" style="font-size: 24px; color: #2563eb; flex-shrink: 0;"></i>
+                <div>
+                    <strong>Email xác nhận kèm lịch trình tour chi tiết</strong> đã được hệ thống tự động gửi tới: <strong style="color: #1d4ed8;">${not empty orderDetail.email ? orderDetail.email : 'email của quý khách'}</strong>. Quý khách vui lòng kiểm tra hộp thư đến (hoặc thư mục Spam/Quảng cáo).
+                </div>
+            </div>
             <h4>Cảm ơn quý khách đã đặt tour! Chúng tôi sẽ liên hệ lại với quý khách trong thời gian sớm nhất.</h4>
             <div class="inner-head">
                 <div class="inner-title">Thông tin đơn hàng</div>
             </div>
-            <p>Mã đơn hàng: ${orderDetail.code}</p>
+            <p>Mã đơn hàng: <b>${orderDetail.code}</b></p>
             <p>Tên khách hàng: ${orderDetail.fullName}</p>
             <p>Số điện thoại: ${orderDetail.phone}</p>
+            <c:if test="${not empty orderDetail.email}">
+                <p>Email nhận xác nhận & lịch trình: <b style="color: #2563eb;">${orderDetail.email}</b></p>
+            </c:if>
             <p>Ghi chú: ${orderDetail.note}</p>
+            <c:if test="${not empty orderDetail.couponCode}">
+                <p>Mã giảm giá áp dụng: <span style="background: #eff6ff; color: #2563eb; font-weight: 700; padding: 2px 8px; border-radius: 6px; border: 1px dashed #3b82f6;">${orderDetail.couponCode}</span></p>
+            </c:if>
             <p>Phương thức thanh toán: ${orderDetail.paymentMethodName}</p>
             <p>Trạng thái thanh toán: ${orderDetail.paymentStatusName}</p>
             <p>Trạng thái đơn hàng: ${orderDetail.statusName}</p>
             <p>Ngày đặt: ${orderDetail.createdAtFormatted}</p>
+
+            <div style="margin-top: 18px; display: flex; gap: 12px; flex-wrap: wrap;">
+                <a href="${pageContext.request.contextPath}/order/lookup?orderCode=${orderDetail.code}&phone=${orderDetail.phone}" style="display: inline-flex; align-items: center; gap: 8px; background: #2563eb; color: #ffffff; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; box-shadow: 0 4px 12px rgba(37,99,235,0.25);">
+                    <i class="fa-solid fa-receipt"></i> Tra Cứu & Theo Dõi Đơn Hàng Này
+                </a>
+            </div>
         </div>
     </div>
 
@@ -107,12 +125,19 @@
             </div>
             <div class="inner-list-price">
                 <div class="inner-item">
-                    <div class="inner-label">Tổng tiền:</div>
+                    <div class="inner-label">Tạm tính:</div>
                     <div class="inner-price"><fmt:formatNumber value="${orderDetail.subTotal}" pattern="#,###" />đ</div>
                 </div>
                 <div class="inner-item">
                     <div class="inner-label">Giảm:</div>
-                    <div class="inner-price">-0đ</div>
+                    <div class="inner-price" style="color: ${orderDetail.discount > 0 ? '#ef4444' : 'inherit'}; font-weight: ${orderDetail.discount > 0 ? '700' : 'normal'};">
+                        <c:choose>
+                            <c:when test="${orderDetail.discount > 0}">
+                                -<fmt:formatNumber value="${orderDetail.discount}" pattern="#,###" />đ
+                            </c:when>
+                            <c:otherwise>0đ</c:otherwise>
+                        </c:choose>
+                    </div>
                 </div>
                 <div class="inner-item">
                     <div class="inner-label">Thanh toán:</div>

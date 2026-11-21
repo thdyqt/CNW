@@ -38,7 +38,10 @@
             <nav class="inner-menu">
                 <ul>
                     <li>
-                        <a class="${empty categoryCurrent and pageCurrent != 'contact' and pageCurrent != 'cart' and pageCurrent != 'search' and pageCurrent != 'news' ? 'active' : ''}" href="${pageContext.request.contextPath}/">Trang Chủ</a>
+                        <a class="${empty categoryCurrent and empty pageCurrent ? 'active' : ''}" href="${pageContext.request.contextPath}/">Trang Chủ</a>
+                    </li>
+                    <li>
+                        <a class="${pageCurrent == 'about' ? 'active' : ''}" href="${pageContext.request.contextPath}/about">Giới Thiệu</a>
                     </li>
                     <c:forEach var="item" items="${categoryList}">
                         <li>
@@ -60,6 +63,9 @@
                     </li>
                     <li>
                         <a class="${pageCurrent == 'contact' ? 'active' : ''}" href="${pageContext.request.contextPath}/contact">Liên Hệ</a>
+                    </li>
+                    <li>
+                        <a class="${pageCurrent == 'lookup' ? 'active' : ''}" href="${pageContext.request.contextPath}/order/lookup">Tra Cứu Đơn</a>
                     </li>
                 </ul>
                 <div class="inner-overlay"></div>

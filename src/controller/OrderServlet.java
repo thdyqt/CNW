@@ -9,6 +9,10 @@ import model.DAO.*;
 import util.*;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,6 +23,7 @@ public class OrderServlet extends HttpServlet {
     private final OrderDAO orderDAO = new OrderDAO();
     private final TourDAO tourDAO = new TourDAO();
     private final CityDAO cityDAO = new CityDAO();
+    private final CouponDAO couponDAO = new CouponDAO();
     private final ObjectMapper mapper = new ObjectMapper();
 
     @Override
@@ -42,7 +47,13 @@ public class OrderServlet extends HttpServlet {
             return;
         }
 
-        // 3. Trang đặt hàng thành công mặc định: /order/success hoặc /order
+        // 3. Tra cứu đơn hàng: /order/lookup hoặc /order/tracking
+        if (path.contains("/lookup") || path.contains("/tracking")) {
+            handleOrderLookup(req, resp);
+            return;
+        }
+
+        // 4. Trang đặt hàng thành công mặc định: /order/success hoặc /order
         String orderCode = req.getParameter("orderCode");
         String phone = req.getParameter("phone");
 
@@ -51,6 +62,51 @@ public class OrderServlet extends HttpServlet {
         req.setAttribute("pageTitle", "Đặt hàng thành công - DUT Travel");
         req.setAttribute("orderDetail", orderDetail);
         req.getRequestDispatcher("/webContent/client/pages/order-success.jsp").forward(req, resp);
+    }
+
+    private void handleOrderLookup(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String orderCode = req.getParameter("orderCode");
+        String phone = req.getParameter("phone");
+
+        Order orderDetail = null;
+        boolean searched = false;
+
+        if (orderCode != null && phone != null) {
+            searched = true;
+            String trimmedCode = orderCode.trim();
+            String trimmedPhone = phone.trim();
+
+            if (!trimmedCode.isEmpty() && !trimmedPhone.isEmpty()) {
+                orderDetail = orderDAO.getOrderByCodeAndPhone(trimmedCode, trimmedPhone);
+                if (orderDetail == null) {
+                    orderDetail = orderDAO.getOrderByCodeAndPhone(trimmedCode.toUpperCase(), trimmedPhone);
+                }
+            }
+        }
+
+        // Breadcrumb setup
+        Map<String, Object> breadcrumb = new HashMap<>();
+        breadcrumb.put("title", "Tra Cứu Đơn Hàng");
+        breadcrumb.put("image", "https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=1920&q=80");
+        List<Map<String, String>> list = new ArrayList<>();
+        Map<String, String> itemHome = new HashMap<>();
+        itemHome.put("title", "Trang Chủ");
+        itemHome.put("link", "/");
+        list.add(itemHome);
+        Map<String, String> itemLookup = new HashMap<>();
+        itemLookup.put("title", "Tra Cứu Đơn Hàng");
+        itemLookup.put("link", "/order/lookup");
+        list.add(itemLookup);
+        breadcrumb.put("list", list);
+        req.setAttribute("breadcrumb", breadcrumb);
+
+        req.setAttribute("pageTitle", "Tra cứu đơn hàng - DUT Travel");
+        req.setAttribute("pageCurrent", "lookup");
+        req.setAttribute("orderDetail", orderDetail);
+        req.setAttribute("searched", searched);
+        req.setAttribute("searchedCode", orderCode != null ? orderCode.trim() : "");
+        req.setAttribute("searchedPhone", phone != null ? phone.trim() : "");
+        req.getRequestDispatcher("/webContent/client/pages/order-lookup.jsp").forward(req, resp);
     }
 
     private void handleVNPayRedirect(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -105,6 +161,14 @@ public class OrderServlet extends HttpServlet {
                 // Giao dịch thành công
                 if (!orderCode.isEmpty()) {
                     orderDAO.updatePaymentStatus(orderCode, "paid");
+                    try {
+                        Order paidOrder = orderDAO.getOrderByCode(orderCode);
+                        if (paidOrder != null) {
+                            OrderEmailUtil.sendOrderConfirmationAsync(paidOrder);
+                        }
+                    } catch (Exception mailEx) {
+                        mailEx.printStackTrace();
+                    }
                 }
                 resp.sendRedirect(req.getContextPath() + "/order/success?orderCode=" + orderCode + "&phone=" + phoneParam + "&paymentSuccess=1");
             } else {
@@ -124,6 +188,15 @@ public class OrderServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
+        String uri = req.getRequestURI();
+        String contextPath = req.getContextPath();
+        String path = uri.substring(contextPath.length());
+
+        if (path.contains("/lookup") || path.contains("/tracking")) {
+            handleOrderLookup(req, resp);
+            return;
+        }
+
         resp.setContentType("application/json;charset=UTF-8");
 
         StringBuilder sb = new StringBuilder();
@@ -143,6 +216,14 @@ public class OrderServlet extends HttpServlet {
             order.setCode(orderCode);
             order.setFullName(root.has("fullName") ? root.get("fullName").asText() : "");
             order.setPhone(root.has("phone") ? root.get("phone").asText() : "");
+            String email = root.has("email") ? root.get("email").asText("").trim() : "";
+            if (email.isEmpty() && !order.getPhone().isEmpty()) {
+                User u = new UserDAO().getUserByPhone(order.getPhone());
+                if (u != null && u.getEmail() != null && !u.getEmail().trim().isEmpty()) {
+                    email = u.getEmail().trim();
+                }
+            }
+            order.setEmail(email);
             order.setNote(root.has("note") ? root.get("note").asText() : "");
             order.setPaymentMethod(root.has("paymentMethod") ? root.get("paymentMethod").asText() : "money");
             order.setPaymentStatus("unpaid");
@@ -188,7 +269,25 @@ public class OrderServlet extends HttpServlet {
             }
 
             order.setSubTotal(subTotal);
-            order.setTotal(subTotal);
+
+            // Kiểm tra và áp dụng mã giảm giá nếu khách hàng nhập mã
+            String couponCode = root.has("couponCode") ? root.get("couponCode").asText("").trim() : "";
+            if (!couponCode.isEmpty()) {
+                CouponResult cRes = couponDAO.validateAndCalculate(couponCode, subTotal);
+                if (!cRes.isSuccess()) {
+                    ObjectNode respJson = mapper.createObjectNode();
+                    respJson.put("code", "error");
+                    respJson.put("message", cRes.getMessage());
+                    resp.getWriter().write(mapper.writeValueAsString(respJson));
+                    return;
+                }
+                order.setCouponCode(cRes.getCouponCode());
+                order.setDiscount(cRes.getDiscount());
+                order.setTotal(cRes.getNewTotal());
+            } else {
+                order.setDiscount(0);
+                order.setTotal(subTotal);
+            }
 
             OrderResult result = orderDAO.createOrderWithStockCheck(order);
             ObjectNode respJson = mapper.createObjectNode();
@@ -196,6 +295,13 @@ public class OrderServlet extends HttpServlet {
                 respJson.put("code", "success");
                 respJson.put("message", "Đặt hàng thành công!");
                 respJson.put("orderCode", orderCode);
+
+                // Gửi email xác nhận đơn hàng kèm lịch trình tour tự động (chạy bất đồng bộ)
+                try {
+                    OrderEmailUtil.sendOrderConfirmationAsync(order);
+                } catch (Exception mailEx) {
+                    mailEx.printStackTrace();
+                }
             } else {
                 respJson.put("code", "error");
                 respJson.put("message", result != null ? result.getMessage() : "Đặt hàng không thành công!");

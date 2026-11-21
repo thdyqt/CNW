@@ -17,6 +17,7 @@ import java.util.Map;
 
 public class OrderDAO {
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final CouponDAO couponDAO = new CouponDAO();
 
     public OrderResult createOrderWithStockCheck(Order order) {
         if (order == null || order.getItems() == null || order.getItems().isEmpty()) {
@@ -134,23 +135,35 @@ public class OrderDAO {
                 }
             }
 
+            // 4.5. Nếu có mã giảm giá, kiểm tra và tăng số lượt sử dụng trong cùng transaction
+            if (order.getCouponCode() != null && !order.getCouponCode().trim().isEmpty()) {
+                boolean okCoupon = couponDAO.incrementUsedCount(conn, order.getCouponCode().trim());
+                if (!okCoupon) {
+                    conn.rollback();
+                    return new OrderResult(false, "Mã giảm giá '" + order.getCouponCode() + "' đã hết lượt sử dụng hoặc không còn hiệu lực!");
+                }
+            }
+
             // 5. Thêm bản ghi vào bảng orders
-            String sql = "INSERT INTO orders (code, full_name, phone, note, sub_total, total, payment_method, payment_status, status, items, created_at, updated_at, deleted) "
-                       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)";
+            String sql = "INSERT INTO orders (code, full_name, phone, email, note, sub_total, total, coupon_code, discount, payment_method, payment_status, status, items, created_at, updated_at, deleted) "
+                       + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), 0)";
             int orderId = 0;
             try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
                 ps.setString(1, order.getCode());
                 ps.setString(2, order.getFullName());
                 ps.setString(3, order.getPhone());
-                ps.setString(4, order.getNote());
-                ps.setDouble(5, order.getSubTotal());
-                ps.setDouble(6, order.getTotal());
-                ps.setString(7, order.getPaymentMethod() != null ? order.getPaymentMethod() : "money");
-                ps.setString(8, order.getPaymentStatus() != null ? order.getPaymentStatus() : "unpaid");
-                ps.setString(9, order.getStatus() != null ? order.getStatus() : "initial");
+                ps.setString(4, order.getEmail());
+                ps.setString(5, order.getNote());
+                ps.setDouble(6, order.getSubTotal());
+                ps.setDouble(7, order.getTotal());
+                ps.setString(8, (order.getCouponCode() != null && !order.getCouponCode().trim().isEmpty()) ? order.getCouponCode().trim().toUpperCase() : null);
+                ps.setDouble(9, order.getDiscount());
+                ps.setString(10, order.getPaymentMethod() != null ? order.getPaymentMethod() : "money");
+                ps.setString(11, order.getPaymentStatus() != null ? order.getPaymentStatus() : "unpaid");
+                ps.setString(12, order.getStatus() != null ? order.getStatus() : "initial");
 
                 String itemsJson = objectMapper.writeValueAsString(order.getItems());
-                ps.setString(10, itemsJson);
+                ps.setString(13, itemsJson);
 
                 int affected = ps.executeUpdate();
                 if (affected <= 0) {
@@ -359,13 +372,24 @@ public class OrderDAO {
     }
 
     public Order getOrderByCodeAndPhone(String code, String phone) {
-        String sql = "SELECT * FROM orders WHERE code = ? AND (phone = ? OR ? IS NULL) AND deleted = 0";
+        if (code == null || code.trim().isEmpty()) return null;
+        String cleanCode = code.trim();
+        String rawPhone = phone != null ? phone.trim() : null;
+        String digitsPhone = phone != null ? phone.trim().replaceAll("[^0-9+]", "") : null;
+
+        String sql = "SELECT * FROM orders WHERE (UPPER(code) = UPPER(?) OR code = ?) "
+                   + "AND (phone = ? OR REPLACE(phone, ' ', '') = ? OR REPLACE(phone, '.', '') = ? OR ? IS NULL OR ? = '') "
+                   + "AND deleted = 0 LIMIT 1";
         try (Connection conn = DBContext.getConnection()) {
             if (conn != null) {
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                    ps.setString(1, code);
-                    ps.setString(2, phone);
-                    ps.setString(3, phone);
+                    ps.setString(1, cleanCode);
+                    ps.setString(2, cleanCode);
+                    ps.setString(3, rawPhone);
+                    ps.setString(4, digitsPhone);
+                    ps.setString(5, digitsPhone);
+                    ps.setString(6, rawPhone);
+                    ps.setString(7, rawPhone != null ? rawPhone : "");
                     try (ResultSet rs = ps.executeQuery()) {
                         if (rs.next()) {
                             return mapResultSetToOrder(rs, conn);
@@ -400,17 +424,35 @@ public class OrderDAO {
     }
 
     public boolean updateOrder(Order order) {
-        String sql = "UPDATE orders SET full_name = ?, phone = ?, note = ?, payment_method = ?, payment_status = ?, status = ?, updated_at = NOW() WHERE id = ?";
+        if (order == null) return false;
+        String queryCurrent = "SELECT status FROM orders WHERE id = ?";
+        String oldStatus = null;
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(queryCurrent)) {
+            ps.setInt(1, order.getId());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    oldStatus = rs.getString("status");
+                }
+            }
+        } catch (Exception ignored) {}
+
+        if (oldStatus != null && !oldStatus.equalsIgnoreCase(order.getStatus())) {
+            updateStatus(order.getId(), order.getStatus());
+        }
+
+        String sql = "UPDATE orders SET full_name = ?, phone = ?, email = ?, note = ?, payment_method = ?, payment_status = ?, status = ?, updated_at = NOW() WHERE id = ?";
         try (Connection conn = DBContext.getConnection()) {
             if (conn != null) {
                 try (PreparedStatement ps = conn.prepareStatement(sql)) {
                     ps.setString(1, order.getFullName());
                     ps.setString(2, order.getPhone());
-                    ps.setString(3, order.getNote());
-                    ps.setString(4, order.getPaymentMethod());
-                    ps.setString(5, order.getPaymentStatus());
-                    ps.setString(6, order.getStatus());
-                    ps.setInt(7, order.getId());
+                    ps.setString(3, order.getEmail());
+                    ps.setString(4, order.getNote());
+                    ps.setString(5, order.getPaymentMethod());
+                    ps.setString(6, order.getPaymentStatus());
+                    ps.setString(7, order.getStatus());
+                    ps.setInt(8, order.getId());
                     return ps.executeUpdate() > 0;
                 }
             }
@@ -437,9 +479,10 @@ public class OrderDAO {
                     }
 
                     if (oldStatus != null) {
-                        // Nếu chuyển sang trạng thái hủy (cancel), hoàn lại số lượng chỗ cho tour
+                        // Nếu chuyển sang trạng thái hủy (cancel), hoàn lại số lượng chỗ cho tour và hoàn lại lượt mã giảm giá
                         if ("cancel".equalsIgnoreCase(status) && !"cancel".equalsIgnoreCase(oldStatus)) {
                             restoreOrderStock(id, conn);
+                            restoreCouponUsage(id, conn);
                         }
                     }
 
@@ -486,6 +529,23 @@ public class OrderDAO {
                 }
                 updatePs.executeBatch();
             }
+        }
+    }
+
+    private void restoreCouponUsage(int orderId, Connection conn) {
+        String sql = "SELECT coupon_code FROM orders WHERE id = ?";
+        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String couponCode = rs.getString("coupon_code");
+                    if (couponCode != null && !couponCode.trim().isEmpty()) {
+                        couponDAO.decrementUsedCount(conn, couponCode.trim());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -621,6 +681,9 @@ public class OrderDAO {
         o.setCode(rs.getString("code"));
         o.setFullName(rs.getString("full_name"));
         o.setPhone(rs.getString("phone"));
+        try {
+            o.setEmail(rs.getString("email"));
+        } catch (Exception ignored) {}
         o.setNote(rs.getString("note"));
         o.setSubTotal(rs.getDouble("sub_total"));
         o.setTotal(rs.getDouble("total"));
@@ -628,6 +691,10 @@ public class OrderDAO {
         o.setPaymentStatus(rs.getString("payment_status"));
         o.setStatus(rs.getString("status"));
         o.setCreatedAt(rs.getTimestamp("created_at"));
+        try {
+            o.setCouponCode(rs.getString("coupon_code"));
+            o.setDiscount(rs.getDouble("discount"));
+        } catch (Exception ignored) {}
         try {
             o.setDeleted(rs.getInt("deleted") == 1);
             o.setDeletedBy(rs.getString("deleted_by"));

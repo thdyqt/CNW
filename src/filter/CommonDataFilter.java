@@ -151,6 +151,8 @@ public class CommonDataFilter implements Filter {
             resp.sendRedirect(ctx + "/admin/category/list");
         } else if (acc.hasPermission("order-view")) {
             resp.sendRedirect(ctx + "/admin/order/list");
+        } else if (acc.hasPermission("coupon-view")) {
+            resp.sendRedirect(ctx + "/admin/coupon/list");
         } else if (acc.hasPermission("user-view")) {
             resp.sendRedirect(ctx + "/admin/user/list");
         } else if (acc.hasPermission("contact-view")) {
@@ -185,6 +187,13 @@ public class CommonDataFilter implements Filter {
             if (uri.contains("/delete") || uri.contains("/change-multi")) return "order-delete";
             if (uri.contains("/trash")) return "order-trash";
             return "order-view";
+        }
+        if (uri.contains("/admin/coupon")) {
+            if (uri.contains("/create")) return "coupon-create";
+            if (uri.contains("/edit")) return "coupon-edit";
+            if (uri.contains("/delete") || uri.contains("/change-multi") || uri.contains("/undo") || uri.contains("/destroy")) return "coupon-delete";
+            if (uri.contains("/trash")) return "coupon-trash";
+            return "coupon-view";
         }
         if (uri.contains("/admin/user") || uri.contains("/admin/customer")) {
             if (uri.contains("/edit")) return "user-edit";

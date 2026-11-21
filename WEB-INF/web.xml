@@ -66,6 +66,8 @@
         <servlet-name>CartServlet</servlet-name>
         <url-pattern>/cart</url-pattern>
         <url-pattern>/cart/detail</url-pattern>
+        <url-pattern>/cart/apply-coupon</url-pattern>
+        <url-pattern>/cart/*</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -101,6 +103,28 @@
         <url-pattern>/news/*</url-pattern>
         <url-pattern>/tin-tuc</url-pattern>
         <url-pattern>/tin-tuc/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>PolicyServlet</servlet-name>
+        <servlet-class>controller.PolicyServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>PolicyServlet</servlet-name>
+        <url-pattern>/terms</url-pattern>
+        <url-pattern>/privacy</url-pattern>
+        <url-pattern>/dieu-khoan</url-pattern>
+        <url-pattern>/chinh-sach-bao-mat</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AboutServlet</servlet-name>
+        <servlet-class>controller.AboutServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AboutServlet</servlet-name>
+        <url-pattern>/about</url-pattern>
+        <url-pattern>/gioi-thieu</url-pattern>
     </servlet-mapping>
 
     <!-- Admin Servlets -->
@@ -150,6 +174,16 @@
     <servlet-mapping>
         <servlet-name>AdminOrderServlet</servlet-name>
         <url-pattern>/admin/order/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
+        <servlet-name>AdminCouponServlet</servlet-name>
+        <servlet-class>controller.admin.AdminCouponServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>AdminCouponServlet</servlet-name>
+        <url-pattern>/admin/coupon/*</url-pattern>
+        <url-pattern>/admin/coupon</url-pattern>
     </servlet-mapping>
 
     <servlet>
@@ -228,5 +262,21 @@
         <url-pattern>/admin/news/*</url-pattern>
         <url-pattern>/admin/news</url-pattern>
     </servlet-mapping>
+
+    <!-- 404 Error Handler Servlet & Error Page -->
+    <servlet>
+        <servlet-name>Error404Servlet</servlet-name>
+        <servlet-class>controller.Error404Servlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>Error404Servlet</servlet-name>
+        <url-pattern>/404</url-pattern>
+        <url-pattern>/error-404</url-pattern>
+    </servlet-mapping>
+
+    <error-page>
+        <error-code>404</error-code>
+        <location>/error-404</location>
+    </error-page>
 
 </web-app>

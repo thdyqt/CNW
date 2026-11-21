@@ -144,9 +144,13 @@
                                 </td>
                                 <td>
                                     <div>Tổng tiền: ${orderDetail.subTotalFormatted}đ</div>
-                                    <div>Giảm: 0đ</div>
-                                    <div>Mã giảm: </div>
-                                    <div>Thanh toán: ${orderDetail.totalFormatted}đ</div>
+                                    <c:if test="${orderDetail.discount > 0}">
+                                        <div style="color: #ef4444; font-weight: 600;">Giảm: -${orderDetail.discountFormatted}đ</div>
+                                    </c:if>
+                                    <c:if test="${not empty orderDetail.couponCode}">
+                                        <div>Mã giảm: <b>${orderDetail.couponCode}</b></div>
+                                    </c:if>
+                                    <div>Thanh toán: <b>${orderDetail.totalFormatted}đ</b></div>
                                     <div>PTTT: ${orderDetail.paymentMethodName}</div>
                                     <div>TTTT: ${orderDetail.paymentStatusName}</div>
                                 </td>

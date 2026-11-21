@@ -30,7 +30,8 @@ public class CategoryServlet extends HttpServlet {
 
         Category category = categoryDAO.getCategoryBySlug(slug);
         if (category == null) {
-            category = categoryDAO.getAllCategories().get(0);
+            resp.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
 
         Breadcrumb breadcrumb = new Breadcrumb(category.getName(), category.getAvatar());
@@ -82,7 +83,7 @@ public class CategoryServlet extends HttpServlet {
         List<Tour> tourListSection9 = tourDAO.getToursByCategoriesWithFilter(
             catIds, locationFrom, locationTo, departureDate, stockAdult, stockChildren, stockBaby, price, sortKey, sortValue, 100
         );
-        List<City> cityList = cityDAO.getAllCities();
+        List<City> cityList = cityDAO.getCitiesWithTours();
 
         req.setAttribute("pageTitle", category.getName() + " - Danh sách tour");
         req.setAttribute("breadcrumb", breadcrumb);

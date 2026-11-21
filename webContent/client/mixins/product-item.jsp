@@ -3,7 +3,7 @@
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <fmt:setLocale value="vi_VN" />
 
-<div class="product-item">
+<div class="product-item ${item.stockAdult <= 0 ? 'is-sold-out' : ''}">
     <div class="inner-image">
         <a href="${pageContext.request.contextPath}/tour/detail/${item.slug}">
             <c:choose>
@@ -18,12 +18,19 @@
                 </c:otherwise>
             </c:choose>
         </a>
-        <c:if test="${item.discount > 0}">
-            <div class="inner-discount">
-                <i class="fa-solid fa-bolt"></i>
-                <div class="inner-discount-percent">GIẢM -${item.discount}%</div>
-            </div>
-        </c:if>
+        <c:choose>
+            <c:when test="${item.stockAdult <= 0}">
+                <div class="inner-soldout-badge">
+                    <i class="fa-solid fa-ban"></i> HẾT CHỖ
+                </div>
+            </c:when>
+            <c:when test="${item.discount > 0}">
+                <div class="inner-discount">
+                    <i class="fa-solid fa-bolt"></i>
+                    <div class="inner-discount-percent">GIẢM -${item.discount}%</div>
+                </div>
+            </c:when>
+        </c:choose>
         <div class="inner-loc-badge">
             <i class="fa-solid fa-location-dot"></i> Tour Trọn Gói
         </div>
@@ -53,9 +60,16 @@
                 </div>
                 <div class="inner-number">5.0</div>
             </div>
-            <div class="inner-stock">
-                <div class="inner-label">Còn lại:</div>
-                <div class="inner-number">${item.stockAdult}</div>
+            <div class="inner-stock ${item.stockAdult <= 0 ? 'stock-empty' : ''}">
+                <c:choose>
+                    <c:when test="${item.stockAdult <= 0}">
+                        <span class="badge-status-empty"><i class="fa-solid fa-circle-xmark"></i> Hết chỗ</span>
+                    </c:when>
+                    <c:otherwise>
+                        <div class="inner-label">Còn lại:</div>
+                        <div class="inner-number">${item.stockAdult}</div>
+                    </c:otherwise>
+                </c:choose>
             </div>
         </div>
         <div class="inner-footer-bar">
@@ -71,7 +85,7 @@
                     <span class="unit">đ</span>
                 </div>
             </div>
-            <a class="inner-detail-btn" href="${pageContext.request.contextPath}/tour/detail/${item.slug}" title="Xem chi tiết">
+            <a class="inner-detail-btn ${item.stockAdult <= 0 ? 'btn-soldout' : ''}" href="${pageContext.request.contextPath}/tour/detail/${item.slug}" title="${item.stockAdult <= 0 ? 'Tour đã hết chỗ' : 'Xem chi tiết'}">
                 <i class="fa-solid fa-arrow-right"></i>
             </a>
         </div>

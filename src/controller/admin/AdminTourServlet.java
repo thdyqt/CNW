@@ -475,7 +475,7 @@ public class AdminTourServlet extends HttpServlet {
                 String slug = (name != null) ? name.toLowerCase().replaceAll("[^a-z0-9]+", "-") + "-" + (System.currentTimeMillis() % 100000) : "tour-" + System.currentTimeMillis();
 
                 Tour tour = new Tour();
-                tour.setCode("28T" + (System.currentTimeMillis() % 100000));
+                tour.setCode("DUT" + (System.currentTimeMillis() % 100000));
                 tour.setName(name);
                 tour.setCategoryId(categoryId);
                 tour.setPosition(position);

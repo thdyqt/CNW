@@ -4,11 +4,13 @@ C:\xampp\tomcat\webapps\project\src\controller\ContactServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\HomeServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\NewsServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\OrderServlet.java
+C:\xampp\tomcat\webapps\project\src\controller\PolicyServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\SearchServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\TourDetailServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\admin\AdminAccountServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\admin\AdminCategoryServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\admin\AdminContactServlet.java
+C:\xampp\tomcat\webapps\project\src\controller\admin\AdminCouponServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\admin\AdminDashboardServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\admin\AdminNewsServlet.java
 C:\xampp\tomcat\webapps\project\src\controller\admin\AdminOrderServlet.java
@@ -22,6 +24,8 @@ C:\xampp\tomcat\webapps\project\src\model\BEAN\Breadcrumb.java
 C:\xampp\tomcat\webapps\project\src\model\BEAN\Category.java
 C:\xampp\tomcat\webapps\project\src\model\BEAN\City.java
 C:\xampp\tomcat\webapps\project\src\model\BEAN\Contact.java
+C:\xampp\tomcat\webapps\project\src\model\BEAN\Coupon.java
+C:\xampp\tomcat\webapps\project\src\model\BEAN\CouponResult.java
 C:\xampp\tomcat\webapps\project\src\model\BEAN\News.java
 C:\xampp\tomcat\webapps\project\src\model\BEAN\Order.java
 C:\xampp\tomcat\webapps\project\src\model\BEAN\OrderItem.java
@@ -44,6 +48,7 @@ C:\xampp\tomcat\webapps\project\src\model\DAO\AccountDAO.java
 C:\xampp\tomcat\webapps\project\src\model\DAO\CategoryDAO.java
 C:\xampp\tomcat\webapps\project\src\model\DAO\CityDAO.java
 C:\xampp\tomcat\webapps\project\src\model\DAO\ContactDAO.java
+C:\xampp\tomcat\webapps\project\src\model\DAO\CouponDAO.java
 C:\xampp\tomcat\webapps\project\src\model\DAO\DBContext.java
 C:\xampp\tomcat\webapps\project\src\model\DAO\ForgotPasswordDAO.java
 C:\xampp\tomcat\webapps\project\src\model\DAO\NewsDAO.java

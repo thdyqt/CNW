@@ -10,9 +10,12 @@ public class Order {
     private String code;
     private String fullName;
     private String phone;
+    private String email;
     private String note;
     private double subTotal;
     private double total;
+    private String couponCode;
+    private double discount;
     private String paymentMethod;
     private String paymentMethodName;
     private String paymentStatus;
@@ -45,6 +48,9 @@ public class Order {
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
 
+    public String getEmail() { return email != null ? email : ""; }
+    public void setEmail(String email) { this.email = email; }
+
     public String getNote() { return note != null ? note : ""; }
     public void setNote(String note) { this.note = note; }
 
@@ -61,6 +67,16 @@ public class Order {
     public String getSubTotalFormatted() {
         double val = subTotal > 0 ? subTotal : total;
         return new java.text.DecimalFormat("#,###", new java.text.DecimalFormatSymbols(new java.util.Locale("vi", "VN"))).format(val);
+    }
+
+    public String getCouponCode() { return couponCode; }
+    public void setCouponCode(String couponCode) { this.couponCode = couponCode; }
+
+    public double getDiscount() { return discount; }
+    public void setDiscount(double discount) { this.discount = discount; }
+
+    public String getDiscountFormatted() {
+        return new java.text.DecimalFormat("#,###", new java.text.DecimalFormatSymbols(new java.util.Locale("vi", "VN"))).format(discount);
     }
 
     public String getPaymentMethod() { return paymentMethod; }

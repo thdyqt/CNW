@@ -62,7 +62,7 @@ public class Tour {
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
-    public String getCode() { return code != null && !code.isEmpty() ? code : "28T0000" + id; }
+    public String getCode() { return code != null && !code.isEmpty() ? code : "DUT000" + id; }
     public void setCode(String code) { this.code = code; }
 
     public String getName() { return name; }
