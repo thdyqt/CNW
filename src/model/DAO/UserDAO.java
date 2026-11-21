@@ -202,6 +202,65 @@ public class UserDAO {
         return null;
     }
 
+    /** Checks every row, including soft-deleted users, because email is unique in users. */
+    public int countEmailRows(String email) {
+        if (email == null || email.trim().isEmpty()) return 0;
+        String sql = "SELECT COUNT(*) FROM users WHERE email = ?";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, email.trim());
+                    try (ResultSet rs = ps.executeQuery()) {
+                        return rs.next() ? rs.getInt(1) : 0;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    /** Updates only customer-editable profile fields; email and account status are immutable here. */
+    public boolean updateCustomerProfile(int id, String fullName, String phone, String address) {
+        String sql = "UPDATE users SET full_name = ?, phone = ?, address = ?, slug = ?, "
+                   + "updated_by = 'Khách hàng', updated_at = NOW() "
+                   + "WHERE id = ? AND deleted = 0 AND status = 'active'";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, fullName != null ? fullName.trim() : "");
+                    ps.setString(2, phone != null ? phone.trim() : "");
+                    ps.setString(3, address != null ? address.trim() : "");
+                    ps.setString(4, CategoryDAO.toSlug(fullName));
+                    ps.setInt(5, id);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public boolean updateCustomerPassword(int id, String passwordHash) {
+        if (id <= 0 || passwordHash == null || passwordHash.trim().isEmpty()) return false;
+        String sql = "UPDATE users SET password = ?, updated_by = 'Khách hàng', updated_at = NOW() "
+                   + "WHERE id = ? AND deleted = 0 AND status = 'active'";
+        try (Connection conn = DBContext.getConnection()) {
+            if (conn != null) {
+                try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                    ps.setString(1, passwordHash);
+                    ps.setInt(2, id);
+                    return ps.executeUpdate() > 0;
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
     public User getUserByPhone(String phone) {
         if (phone == null || phone.trim().isEmpty()) return null;
         try (Connection conn = DBContext.getConnection()) {

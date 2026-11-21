@@ -7343,3 +7343,210 @@ body {
         justify-content: center;
     }
 }
+
+.customer-account-page {
+    min-height: 55vh;
+    padding: 56px 20px;
+    background: #f6f8fb;
+}
+
+.customer-account-card {
+    width: min(100%, 540px);
+    margin: 0 auto;
+    padding: 36px;
+    border-radius: 14px;
+    background: #fff;
+    box-shadow: 0 12px 38px rgba(20, 42, 76, .09);
+}
+
+.customer-account-card h1 {
+    margin: 0 0 8px;
+    color: #172b4d;
+    font-size: 28px;
+}
+
+.customer-account-card > p {
+    margin: 0 0 24px;
+    color: #667085;
+    line-height: 1.6;
+}
+
+.customer-account-form {
+    display: grid;
+    gap: 16px;
+}
+
+.customer-account-form label {
+    display: grid;
+    gap: 7px;
+    color: #344054;
+    font-weight: 600;
+}
+
+.customer-account-form label span {
+    color: #667085;
+    font-size: 13px;
+    font-weight: 400;
+}
+
+.customer-account-form input {
+    width: 100%;
+    min-height: 46px;
+    padding: 10px 12px;
+    border: 1px solid #d0d5dd;
+    border-radius: 7px;
+    color: #101828;
+    font: inherit;
+}
+
+.customer-account-form input:focus {
+    border-color: #2563eb;
+    outline: 3px solid rgba(37, 99, 235, .12);
+}
+
+.customer-password-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.customer-password-field input {
+    flex: 1;
+    min-width: 0;
+}
+
+.customer-account-form button.customer-password-toggle {
+    flex: 0 0 68px;
+    min-height: 40px;
+    margin: 0;
+    padding: 6px 10px;
+    border: 1px solid #d0d5dd;
+    background: #fff;
+    color: #344054;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.customer-account-form button.customer-password-toggle:hover {
+    border-color: #98a2b3;
+    background: #f9fafb;
+}
+
+.customer-account-form input[readonly] {
+    background: #f2f4f7;
+}
+
+.customer-account-form button {
+    min-height: 48px;
+    margin-top: 4px;
+    border: 0;
+    border-radius: 7px;
+    background: #2563eb;
+    color: #fff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+}
+
+.customer-account-form button:hover {
+    background: #1d4ed8;
+}
+
+.customer-account-message {
+    margin: 0 0 18px;
+    padding: 12px 14px;
+    border-radius: 7px;
+    line-height: 1.5;
+}
+
+.customer-account-message.is-error {
+    background: #fef3f2;
+    color: #b42318;
+}
+
+.customer-account-message.is-success {
+    background: #ecfdf3;
+    color: #027a48;
+}
+
+.customer-account-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-top: 20px;
+    color: #667085;
+}
+
+.customer-account-links a,
+.customer-account-link-button {
+    color: #2563eb;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.customer-account-links a:hover,
+.customer-account-link-button:hover {
+    text-decoration: underline;
+}
+
+.customer-account-resend {
+    margin-top: 16px;
+    text-align: center;
+}
+
+.customer-account-link-button {
+    padding: 6px;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    font: inherit;
+}
+
+.header .inner-customer-account {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.header .inner-customer-account a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    color: #172b4d;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.header .inner-customer-account a:hover {
+    color: #2563eb;
+}
+
+.header .inner-customer-account .inner-account-secondary {
+    color: #667085;
+    font-size: 13px;
+}
+
+@media (max-width: 767px) {
+    .customer-account-page {
+        padding: 32px 14px;
+    }
+
+    .customer-account-card {
+        padding: 24px 18px;
+    }
+
+    .customer-account-card h1 {
+        font-size: 24px;
+    }
+
+    .header .inner-customer-account {
+        margin-left: auto;
+        gap: 8px;
+    }
+
+    .header .inner-customer-account .inner-account-secondary {
+        display: none;
+    }
+}

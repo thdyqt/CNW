@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
 
 <jsp:include page="../layouts/header.jsp" />
 
@@ -131,13 +132,13 @@
                     <div class="inner-title-main">Thông Tin Khách Hàng</div>
                     <div class="inner-inputs">
                         <div class="inner-input">
-                            <input id="full-name-input" placeholder="Họ và tên *" name="fullName" type="text" />
+                            <input id="full-name-input" placeholder="Họ và tên *" name="fullName" type="text" value="${fn:escapeXml(customerUser.fullName)}" />
                         </div>
                         <div class="inner-input">
-                            <input id="phone-input" placeholder="Số điện thoại *" name="phone" type="number" />
+                            <input id="phone-input" placeholder="Số điện thoại *" name="phone" type="tel" value="${fn:escapeXml(customerUser.phone)}" />
                         </div>
                         <div class="inner-input inner-input-full">
-                            <input id="email-input" placeholder="Email nhận xác nhận đơn hàng & lịch trình tour *" name="email" type="email" />
+                            <input id="email-input" placeholder="Email nhận xác nhận đơn hàng & lịch trình tour *" name="email" type="email" value="${fn:escapeXml(customerUser.email)}" />
                         </div>
                     </div>
                     <textarea placeholder="Ghi chú" name="note"></textarea>

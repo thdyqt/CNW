@@ -27,6 +27,11 @@ public class CartServlet extends HttpServlet {
         
         List<Coupon> couponList = couponDAO.getActiveCoupons(10);
         req.setAttribute("couponList", couponList);
+        Object customer = req.getSession(false) != null
+                ? req.getSession(false).getAttribute("customerUser") : null;
+        if (customer instanceof User) {
+            req.setAttribute("customerUser", customer);
+        }
 
         req.setAttribute("pageTitle", "Giỏ hàng - DUT Travel");
         req.getRequestDispatcher("/webContent/client/pages/cart.jsp").forward(req, resp);

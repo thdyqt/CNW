@@ -84,6 +84,15 @@
     </servlet-mapping>
 
     <servlet>
+        <servlet-name>CustomerAccountServlet</servlet-name>
+        <servlet-class>controller.CustomerAccountServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>CustomerAccountServlet</servlet-name>
+        <url-pattern>/account/*</url-pattern>
+    </servlet-mapping>
+
+    <servlet>
         <servlet-name>ContactServlet</servlet-name>
         <servlet-class>controller.ContactServlet</servlet-class>
     </servlet>

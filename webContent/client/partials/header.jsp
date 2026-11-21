@@ -70,6 +70,22 @@
                 </ul>
                 <div class="inner-overlay"></div>
             </nav>
+            <div class="inner-customer-account">
+                <c:choose>
+                    <c:when test="${not empty sessionScope.customerUser}">
+                        <a href="${pageContext.request.contextPath}/account/profile" title="Thông tin cá nhân">
+                            <i class="fa-regular fa-user"></i>
+                            <span><c:out value="${sessionScope.customerUser.fullName}" /></span>
+                        </a>
+                        <a class="inner-account-secondary" href="${pageContext.request.contextPath}/account/logout">Đăng xuất</a>
+                    </c:when>
+                    <c:otherwise>
+                        <a href="${pageContext.request.contextPath}/account/login">
+                            <i class="fa-regular fa-user"></i><span>Đăng nhập</span>
+                        </a>
+                    </c:otherwise>
+                </c:choose>
+            </div>
             <div class="inner-cart">
                 <a class="inner-icon" href="${pageContext.request.contextPath}/cart">
                     <img alt="Cart" src="${pageContext.request.contextPath}/public/assets/images/Cart.svg" />
