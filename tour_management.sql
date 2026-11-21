@@ -22,7 +22,8 @@ SET time_zone = "+00:00";
 --
 
 -- --------------------------------------------------------
-
+CREATE DATABASE tour_management;
+USE tour_management;
 --
 -- Table structure for table `accounts_admin`
 --
